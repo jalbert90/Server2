@@ -24,5 +24,9 @@ namespace N
 		server();
 		~server();
 
+	private:
+
+		void throwError(const char* errorMessage, int errorCode);
+
 	};
 }
