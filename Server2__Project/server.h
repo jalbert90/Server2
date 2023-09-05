@@ -18,11 +18,12 @@ namespace N
 
 	private:
 		// Parameter Decs
-		WSADATA wsaData;
 		int code;
-		const char c[5] = "test";
-		const char* s = c;
+		WSADATA wsaData;
+		SOCKET listenSocket = INVALID_SOCKET;
 
 		int startServer();
+		void closeServer();
+		int createSocket();
 	};
 } // namespace N

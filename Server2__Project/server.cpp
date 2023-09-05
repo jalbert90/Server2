@@ -30,7 +30,7 @@ namespace N
 
 	server::~server()
 	{
-		// destroy
+		closeServer();
 	}
 
 	int server::startServer()
@@ -41,6 +41,20 @@ namespace N
 			exitWithError("WSAStartup failed", code);
 			return 1;	// Should never get here.
 		}
+		return 0;
+	}
+
+	void server::closeServer()
+	{
+		// free addrinfo
+		closesocket(listenSocket);
+		WSACleanup();
+		// If I exit here then the destructor won't finish.
+	}
+
+	int server::createSocket()
+	{
+		listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		return 0;
 	}
 }
