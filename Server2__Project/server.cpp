@@ -1,23 +1,46 @@
 #include "server.h"
 
-using namespace N;
+#include <stdio.h>
+#include <iostream>
+#include <string>
+#include <sstream>
 
-server::server()
+namespace
 {
-	test = WSAStartup(MAKEWORD(2, 2), &wsaData);
-
-	if (test != 0)
+	void log(std::string message)
 	{
-		throwError("WSAStartup failed", test);
+		std::cout << message << std::endl;
 	}
-}
 
-server::~server()
-{
-	// destroy
-}
+	void exitWithError(std::string errorMessage, int errorCode)
+	{
+		std::stringstream ss;
+		ss << errorCode;
+		log("Error Message: " + errorMessage + "\nError Code: " + ss.str());
+		exit(1);
+	}
+} // unnamed namespace
 
-void server::throwError(const char* errorMessage, int errorCode)
+namespace N
 {
-	printf("Error Message: %s\nError Code: %d\n", errorMessage, errorCode);
+	server::server()
+	{
+		code = startServer();
+	}
+
+	server::~server()
+	{
+		// destroy
+	}
+
+	int server::startServer()
+	{
+		code = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		if (code != 0)
+		{
+			exitWithError("WSAStartup failed", code);
+			return 1;	// Should never get here.
+		}
+		return 0;
+	}
 }
