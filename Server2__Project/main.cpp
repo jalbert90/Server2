@@ -3,7 +3,7 @@
 int main() {
 	using namespace N;
 
-	server s;
+	Server s = Server("0.0.0.0", "8080");
 
 	return 0;
 }

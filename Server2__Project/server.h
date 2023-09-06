@@ -3,27 +3,31 @@
 		
 #include <WinSock2.h>							// API
 #include <WS2tcpip.h>							// New Stuff
+#include <string>
 
 #pragma comment(lib, "Ws2_32.lib")				// Tell the linker we need this
 
 namespace N
 {
-	class server
+	class Server
 	{
 	public:
 
 		// Constructor Dec
-		server();
-		~server();
+		Server(std::string addr, std::string port);
+		~Server();
 
 	private:
 		// Parameter Decs
 		int code;
 		WSADATA wsaData;
 		SOCKET listenSocket = INVALID_SOCKET;
+		struct addrinfo* result = NULL,
+						  * ptr = NULL,
+						  hints;
+		std::string m_addr, m_port;
 
 		int startServer();
 		void closeServer();
-		int createSocket();
 	};
 } // namespace N
