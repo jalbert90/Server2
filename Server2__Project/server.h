@@ -22,10 +22,10 @@ namespace N
 		int code;
 		WSADATA wsaData;
 		SOCKET listenSocket = INVALID_SOCKET;
-		struct addrinfo* result = NULL,
+		struct addrinfo* result = NULL,				// Pointer to data type struct addrinfo.
 						  * ptr = NULL,
 						  hints;
-		std::string m_addr, m_port;
+		const std::string m_addr, m_port;
 
 		int startServer();
 		void closeServer();

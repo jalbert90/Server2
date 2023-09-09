@@ -24,9 +24,12 @@ namespace N
 {
 	Server::Server(std::string addr, std::string port) : m_addr(addr), m_port(port)
 	{
+		ZeroMemory(&hints, sizeof(hints));
+
 		hints.ai_family = AF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_socktype = SOCK_STREAM;	// Use TCP
 		hints.ai_protocol = IPPROTO_TCP;
+		hints.ai_flags = AI_PASSIVE;
 
 		code = startServer();
 	}
@@ -54,12 +57,17 @@ namespace N
 			return 1;
 		}
 
+		// Pass the address of the result pointer.
+		// The contents at this address are then modified to contain the address
+		// of the first struct addrinfo item in a linked list.
+		code = getaddrinfo(m_addr.c_str(), m_port.c_str(), &hints, &result);
+
 		return 0;
 	}
 
 	void Server::closeServer()
 	{
-		// free addrinfo
+		freeaddrinfo(result);
 		closesocket(listenSocket);
 		WSACleanup();
 		// If I exit here then the destructor won't finish.
