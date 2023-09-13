@@ -90,6 +90,7 @@ namespace N
 
 
 		// Comment this all up.
+		// Also, add to notebook.
 		in_addr = (struct sockaddr_in*)result->ai_addr;
 		char buf[INET_ADDRSTRLEN];
 
