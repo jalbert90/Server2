@@ -17,6 +17,8 @@ namespace N
 		Server(std::string addr, std::string port);
 		~Server();
 
+		void startListening();
+
 	private:
 		// Parameter Decs
 		int code;
@@ -25,6 +27,7 @@ namespace N
 		struct addrinfo* result = NULL,				// Pointer to data type struct addrinfo.
 						  * ptr = NULL,
 						  hints;
+		struct sockaddr_in* in_addr;
 		const std::string m_addr, m_port;
 
 		int startServer();

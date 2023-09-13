@@ -32,6 +32,7 @@ namespace N
 		hints.ai_flags = AI_PASSIVE;
 
 		code = startServer();
+		// Failed to start with port?
 	}
 
 	Server::~Server()
@@ -61,8 +62,45 @@ namespace N
 		// The contents at this address are then modified to contain the address
 		// of the first struct addrinfo item in a linked list.
 		code = getaddrinfo(m_addr.c_str(), m_port.c_str(), &hints, &result);
+		if (code != 0)
+		{
+			closeServer();
+			exitWithError("getaddrinfo() failed", code);
+		}
+
+		// Pointer to sockaddr found in struct addrinfo.
+		code = bind(listenSocket, result->ai_addr, (int)result->ai_addrlen);
+		if (code != 0)
+		{
+			closeServer();
+			exitWithError("Failed to bind server to socket", WSAGetLastError());
+		}
 
 		return 0;
+	}
+
+	void Server::startListening()
+	{
+		code = listen(listenSocket, 20);
+		if (code != 0)
+		{
+			closeServer();
+			exitWithError("Couldn't start listening", WSAGetLastError());
+		}
+
+
+		// Comment this all up.
+		in_addr = (struct sockaddr_in*)result->ai_addr;
+		char buf[INET_ADDRSTRLEN];
+
+		std::ostringstream os;
+		os << "Listening on ...\n"
+			<< "Address: " << inet_ntop(result->ai_family, &in_addr->sin_addr, buf, sizeof(buf)) << "\n"
+			<< "Port: " << ntohs(in_addr->sin_port);
+
+		// End comment this all up.
+
+		log(os.str());
 	}
 
 	void Server::closeServer()
