@@ -88,20 +88,28 @@ namespace N
 			exitWithError("Couldn't start listening", WSAGetLastError());
 		}
 
-
-		// Comment this all up.
-		// Also, add to notebook.
+		// Cast pointer to struct sockaddr to pointer to sockaddr_in.
 		in_addr = (struct sockaddr_in*)result->ai_addr;
-		char buf[INET_ADDRSTRLEN];
 
 		std::ostringstream os;
 		os << "Listening on ...\n"
-			<< "Address: " << inet_ntop(result->ai_family, &in_addr->sin_addr, buf, sizeof(buf)) << "\n"
+			<< "Address: " << inet_ntop(result->ai_family, &in_addr->sin_addr, buf, sizeof(buf)) << "\n"		// Convert ip to printable format (PCSTR)
 			<< "Port: " << ntohs(in_addr->sin_port);
 
-		// End comment this all up.
-
 		log(os.str());
+
+		acceptConnection();
+	}
+
+	void Server::acceptConnection()
+	{
+		connectSocket = accept(listenSocket, NULL, NULL);
+		if (connectSocket == INVALID_SOCKET)
+		{
+			std::cout << "here";
+			closeServer();
+			exitWithError("Failed to accept connection:", WSAGetLastError());
+		}
 	}
 
 	void Server::closeServer()

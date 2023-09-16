@@ -24,13 +24,16 @@ namespace N
 		int code;
 		WSADATA wsaData;
 		SOCKET listenSocket = INVALID_SOCKET;
+		SOCKET connectSocket = INVALID_SOCKET;
 		struct addrinfo* result = NULL,				// Pointer to data type struct addrinfo.
 						  * ptr = NULL,
-						  hints;
-		struct sockaddr_in* in_addr;
-		const std::string m_addr, m_port;
+						  hints;					// addrinfo structure containing info about the type of socket that is supported.
+		struct sockaddr_in* in_addr;				// Pointer to sockaddr_in structure. Used to obtain ip and port.
+		char buf[INET_ADDRSTRLEN];					// Used in inet_ntop().
+		const std::string m_addr, m_port;			// Node and service.
 
 		int startServer();
 		void closeServer();
+		void acceptConnection();
 	};
 } // namespace N
