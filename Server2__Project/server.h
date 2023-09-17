@@ -36,5 +36,7 @@ namespace N
 		void closeServer();
 		void acceptConnection(SOCKET &connectSocket);
 		void handleConnection();
+		std::string buildResponse();
+		void sendResponse(std::string response);
 	};
 } // namespace N
