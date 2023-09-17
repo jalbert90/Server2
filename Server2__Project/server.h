@@ -24,7 +24,7 @@ namespace N
 		int code;
 		WSADATA wsaData;
 		SOCKET listenSocket = INVALID_SOCKET;
-		SOCKET connectSocket = INVALID_SOCKET;
+		SOCKET connectSocket1 = INVALID_SOCKET;
 		struct addrinfo* result = NULL,				// Pointer to data type struct addrinfo.
 						  * ptr = NULL,
 						  hints;					// addrinfo structure containing info about the type of socket that is supported.
@@ -34,6 +34,7 @@ namespace N
 
 		int startServer();
 		void closeServer();
-		void acceptConnection();
+		void acceptConnection(SOCKET &connectSocket);
+		void handleConnection();
 	};
 } // namespace N

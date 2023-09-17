@@ -98,24 +98,37 @@ namespace N
 
 		log(os.str());
 
-		acceptConnection();
+		acceptConnection(connectSocket1);
 	}
 
-	void Server::acceptConnection()
+	void Server::acceptConnection(SOCKET &connectSocket)
 	{
 		connectSocket = accept(listenSocket, NULL, NULL);
 		if (connectSocket == INVALID_SOCKET)
 		{
-			std::cout << "here";
 			closeServer();
 			exitWithError("Failed to accept connection:", WSAGetLastError());
 		}
+	}
+
+	void Server::handleConnection()
+	{
+		const int recvBufLen = 32768;
+		char* recvBuf = new char[recvBufLen];
+		int bytesRec, bytesSent;
+
+		do {
+			//
+		} while (bytesRec > 0);
+
+		delete[] recvBuf;
 	}
 
 	void Server::closeServer()
 	{
 		freeaddrinfo(result);
 		closesocket(listenSocket);
+		closesocket(connectSocket1);
 		WSACleanup();
 		// If I exit here then the destructor won't finish.
 	}
