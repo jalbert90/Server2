@@ -98,30 +98,71 @@ namespace N
 
 		log(os.str());
 
-		acceptConnection(connectSocket1);
+		while (true)
+		{
+			acceptConnection(connectSocket1);
+			handleConnection(connectSocket1);
+		}
 	}
 
 	void Server::acceptConnection(SOCKET &connectSocket)
 	{
+		log("Waiting for connection...");
 		connectSocket = accept(listenSocket, NULL, NULL);
 		if (connectSocket == INVALID_SOCKET)
 		{
 			closeServer();
 			exitWithError("Failed to accept connection:", WSAGetLastError());
 		}
+		log("Connection established");
 	}
 
-	void Server::handleConnection()
+	void Server::handleConnection(SOCKET &connectSocket)
 	{
 		const int recvBufLen = 32768;
-		char* recvBuf = new char[recvBufLen];
+		char* recvBuf = new char[recvBufLen] ();
 		int bytesRec, bytesSent;
 
 		do {
-			//
+			bytesRec = recv(connectSocket, recvBuf, recvBufLen, 0);
+			if (bytesRec < 0)
+			{
+				closeServer();
+				exitWithError("Error receiving data from client", WSAGetLastError());
+			}
+			else if (bytesRec == 0)
+			{
+				log("Connection closed...");
+			}
+			else
+			{
+				std::ostringstream oss;
+				oss << "Received " << bytesRec << " bytes";
+				log(oss.str());
+				oss.clear();
+				oss.str("");
+
+				std::string sendMessage = buildResponse();
+				bytesSent = send(connectSocket, sendMessage.c_str(), (int)size(sendMessage), 0);
+				if (bytesSent == SOCKET_ERROR)
+				{
+					closeServer();
+					exitWithError("Failed to send message", WSAGetLastError());
+				}
+				oss << "Sent " << bytesSent << " bytes";
+				log(oss.str());
+			}
 		} while (bytesRec > 0);
 
 		delete[] recvBuf;
+	}
+
+	std::string Server::buildResponse()
+	{
+		std::ostringstream oss;
+		std::string html = "<!DOCTYPE HTML PUBLIC><html><body><h1> hello browser </h1></body></html>";
+		oss << "HTTP/1.1 200 OK\nContent-Length: " << html.size() << "\nContent-Type: text/html\n\n" << html;
+		return oss.str();
 	}
 
 	void Server::closeServer()
