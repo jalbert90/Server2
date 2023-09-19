@@ -94,7 +94,7 @@ namespace N
 		std::ostringstream os;
 		os << "Listening on ...\n"
 			<< "Address: " << inet_ntop(result->ai_family, &in_addr->sin_addr, buf, sizeof(buf)) << "\n"		// Convert ip to printable format (PCSTR)
-			<< "Port: " << ntohs(in_addr->sin_port);
+			<< "Port: " << ntohs(in_addr->sin_port) << "\n";
 
 		log(os.str());
 
@@ -123,42 +123,56 @@ namespace N
 		char* recvBuf = new char[recvBufLen] ();
 		int bytesRec, bytesSent;
 
-		do {
-			bytesRec = recv(connectSocket, recvBuf, recvBufLen, 0);
-			if (bytesRec < 0)
+		bytesRec = recv(connectSocket, recvBuf, recvBufLen, 0);
+		if (bytesRec < 0)
+		{
+			closeServer();
+			exitWithError("Error receiving data from client", WSAGetLastError());
+		}
+		else if (bytesRec == 0)
+		{
+			log("Connection closed...");
+		}
+		else
+		{
+			std::ostringstream oss;
+			oss << "Received " << bytesRec << " bytes";
+			log(oss.str());
+			oss.clear();
+			oss.str("");
+
+			std::string sendMessage = buildResponse();
+			bytesSent = send(connectSocket, sendMessage.c_str(), (int)size(sendMessage), 0);
+			if (bytesSent == SOCKET_ERROR)
 			{
 				closeServer();
-				exitWithError("Error receiving data from client", WSAGetLastError());
+				exitWithError("Failed to send message", WSAGetLastError());
 			}
-			else if (bytesRec == 0)
-			{
-				log("Connection closed...");
-			}
-			else
-			{
-				std::ostringstream oss;
-				oss << "Received " << bytesRec << " bytes";
-				log(oss.str());
-				oss.clear();
-				oss.str("");
+			oss << "Sent " << bytesSent << " bytes";
+			log(oss.str());
+		}
 
-				std::string sendMessage = buildResponse();
-				bytesSent = send(connectSocket, sendMessage.c_str(), (int)size(sendMessage), 0);
-				if (bytesSent == SOCKET_ERROR)
-				{
-					closeServer();
-					exitWithError("Failed to send message", WSAGetLastError());
-				}
-				oss << "Sent " << bytesSent << " bytes";
-				log(oss.str());
-			}
-		} while (bytesRec > 0);
-
+		log("Connection closed\n");
+		closesocket(connectSocket);
 		delete[] recvBuf;
 	}
 
 	std::string Server::buildResponse()
 	{
+		// fopen(), fseek(), ftell()
+		// Status line CRLF= \r\n
+		// Headers
+		// Body
+
+		// Bare minimum
+		/*
+			HTTP/1.1 200 OK
+			Content-Length: 12
+			Content-Type: text/plain; charset=utf-8
+
+			Hello World!
+		*/
+
 		std::ostringstream oss;
 		std::string html = "<!DOCTYPE HTML PUBLIC><html><body><h1> hello browser </h1></body></html>";
 		oss << "HTTP/1.1 200 OK\nContent-Length: " << html.size() << "\nContent-Type: text/html\n\n" << html;
