@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 namespace
 {
@@ -173,9 +174,35 @@ namespace N
 			Hello World!
 		*/
 
-		std::ostringstream oss;
-		std::string html = "<!DOCTYPE HTML PUBLIC><html><body><h1> hello browser </h1></body></html>";
-		oss << "HTTP/1.1 200 OK\nContent-Length: " << html.size() << "\nContent-Type: text/html\n\n" << html;
+		// Construct response
+		std::string statusLine = "HTTP/1.1 200 OK\r\n";
+		std::string contentType = "text/html";
+		std::string header;
+		std::string body;
+		std::string line;
+		std::ostringstream oss;																						// stream out of variables
+
+		std::ifstream input;										// Input file handle.
+		input.open("index.html");
+		while (input)
+		{
+			std::getline(input, line);
+			oss << line;
+		}
+
+		body = oss.str();
+		oss.clear();
+		oss.str("");
+
+		oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
+		header = oss.str();
+		oss.clear();
+		oss.str("");
+
+		oss << statusLine << header << body;
+
+		std::cout << oss.str();
+
 		return oss.str();
 	}
 
