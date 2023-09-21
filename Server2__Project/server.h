@@ -4,6 +4,7 @@
 #include <WinSock2.h>							// API
 #include <WS2tcpip.h>							// New Stuff
 #include <string>
+#include <vector>
 
 #pragma comment(lib, "Ws2_32.lib")				// Tell the linker we need this
 
@@ -37,6 +38,8 @@ namespace N
 		void acceptConnection(SOCKET &connectSocket);
 		void handleConnection(SOCKET &connectSocket);
 		std::string buildResponse();
+		std::string getRequestLine(char* recvBuf);
+		std::vector<std::string> tokenize(std::string input);
 		void sendResponse(std::string response);
 	};
 } // namespace N

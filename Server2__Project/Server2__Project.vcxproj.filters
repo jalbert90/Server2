@@ -31,5 +31,6 @@
     <None Include="index.html">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="myScript.js" />
   </ItemGroup>
 </Project>

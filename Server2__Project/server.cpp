@@ -142,6 +142,15 @@ namespace N
 			oss.clear();
 			oss.str("");
 
+			// std::cout << recvBuf << "\n";
+			
+			// GET / HTTP/1.1
+			// GET /myScript.js HTTP/1.1
+			// GET /favicon.ico HTTP/1.1
+
+			std::string requestLine = getRequestLine(recvBuf);
+			std::cout << requestLine << "\n";
+
 			std::string sendMessage = buildResponse();
 			bytesSent = send(connectSocket, sendMessage.c_str(), (int)size(sendMessage), 0);
 			if (bytesSent == SOCKET_ERROR)
@@ -156,6 +165,17 @@ namespace N
 		log("Connection closed\n");
 		closesocket(connectSocket);
 		delete[] recvBuf;
+	}
+
+	std::string Server::getRequestLine(char* recvBuf)
+	{
+		std::stringstream ss;
+		std::string requestLine;
+
+		ss << recvBuf;
+		std::getline(ss, requestLine, '\n');
+
+		return requestLine;
 	}
 
 	std::string Server::buildResponse()
@@ -201,7 +221,7 @@ namespace N
 
 		oss << statusLine << header << body;
 
-		std::cout << oss.str();
+		// std::cout << oss.str();
 
 		return oss.str();
 	}
