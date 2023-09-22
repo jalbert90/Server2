@@ -37,9 +37,9 @@ namespace N
 		void closeServer();
 		void acceptConnection(SOCKET &connectSocket);
 		void handleConnection(SOCKET &connectSocket);
-		std::string buildResponse();
+		std::string buildResponse(std::string requestLine);
 		std::string getRequestLine(char* recvBuf);
-		std::vector<std::string> tokenize(std::string input);
+		std::vector<std::string> tokenize(std::string input, char delim);
 		void sendResponse(std::string response);
 	};
 } // namespace N

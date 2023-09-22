@@ -142,17 +142,11 @@ namespace N
 			oss.clear();
 			oss.str("");
 
-			// std::cout << recvBuf << "\n";
-			
-			// GET / HTTP/1.1
-			// GET /myScript.js HTTP/1.1
-			// GET /favicon.ico HTTP/1.1
-
 			std::string requestLine = getRequestLine(recvBuf);
-			std::cout << requestLine << "\n";
+			log(requestLine);
 
-			std::string sendMessage = buildResponse();
-			bytesSent = send(connectSocket, sendMessage.c_str(), (int)size(sendMessage), 0);
+			std::string serverMessage = buildResponse(requestLine);
+			bytesSent = send(connectSocket, serverMessage.c_str(), (int)size(serverMessage), 0);
 			if (bytesSent == SOCKET_ERROR)
 			{
 				closeServer();
@@ -178,14 +172,30 @@ namespace N
 		return requestLine;
 	}
 
-	std::string Server::buildResponse()
+	std::vector<std::string> Server::tokenize(std::string input, char delim)
 	{
-		// fopen(), fseek(), ftell()
-		// Status line CRLF= \r\n
-		// Headers
-		// Body
+		std::vector<std::string> tokens;
+		std::string token;
+		std::stringstream ss;
 
-		// Bare minimum
+		ss << input;
+
+		while (std::getline(ss, token, delim))
+		{
+			tokens.push_back(token);
+		}
+
+		return tokens;
+	}
+
+	std::string Server::buildResponse(std::string requestLine)
+	{
+		/* This is what the request lines look like */
+		// GET / HTTP/1.1
+		// GET /myScript.js HTTP/1.1
+		// GET /favicon.ico HTTP/1.1
+
+		// Bare minimum response with body:
 		/*
 			HTTP/1.1 200 OK
 			Content-Length: 12
@@ -194,36 +204,93 @@ namespace N
 			Hello World!
 		*/
 
-		// Construct response
-		std::string statusLine = "HTTP/1.1 200 OK\r\n";
-		std::string contentType = "text/html";
-		std::string header;
-		std::string body;
-		std::string line;
-		std::ostringstream oss;																						// stream out of variables
+		// Response Structure:
+		// Status_Line\r\n
+		// Headers\r\n\r\n
+		// Body
 
-		std::ifstream input;										// Input file handle.
-		input.open("index.html");
-		while (input)
+		std::vector<std::string> primaryTokens = tokenize(requestLine, ' ');
+		std::vector <std::string> secondaryTokens = tokenize(primaryTokens[1], '.');
+
+		//for (auto& el : primaryTokens)
+		//{
+		//	std::cout << el << "\n";
+		//}
+
+		//for (auto& el : secondaryTokens)
+		//{
+		//	log(el);
+		//}
+
+		// Potential tools to read file:
+		// fopen(), fseek(), ftell()
+
+		std::string statusLine, contentType, header, body, line;
+		std::ostringstream oss;
+
+		// Send index.html
+		if (primaryTokens[1] == "/")
 		{
-			std::getline(input, line);
-			oss << line;
+			statusLine = "HTTP/1.1 200 OK\r\n";
+			contentType = "text/html";
+
+			std::ifstream input;
+			input.open("index.html");
+			while (input)
+			{
+				std::getline(input, line);
+				oss << line;
+			}
+			input.close();
+
+			body = oss.str();
+			oss.clear();
+			oss.str("");
+
+			oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
+			header = oss.str();
+			oss.clear();
+			oss.str("");
+
+			oss << statusLine << header << body;
+
+			return oss.str();
 		}
+		else
+		{
+			// Send JavaScript
+			if (secondaryTokens[1] == "js")
+			{
+				// To do...
+			}
+			else
+			{
+				statusLine = "HTTP/1.1 200 OK\r\n";
+				contentType = "text/html";
 
-		body = oss.str();
-		oss.clear();
-		oss.str("");
+				std::ifstream input;
+				input.open("index.html");
+				while (input)
+				{
+					std::getline(input, line);
+					oss << line;
+				}
+				input.close();
 
-		oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
-		header = oss.str();
-		oss.clear();
-		oss.str("");
+				body = oss.str();
+				oss.clear();
+				oss.str("");
 
-		oss << statusLine << header << body;
+				oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
+				header = oss.str();
+				oss.clear();
+				oss.str("");
 
-		// std::cout << oss.str();
+				oss << statusLine << header << body;
 
-		return oss.str();
+				return oss.str();
+			}
+		}
 	}
 
 	void Server::closeServer()
