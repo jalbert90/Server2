@@ -5,6 +5,7 @@
 #include <WS2tcpip.h>							// New Stuff
 #include <string>
 #include <vector>
+#include <map>
 
 #pragma comment(lib, "Ws2_32.lib")				// Tell the linker we need this
 
@@ -32,6 +33,7 @@ namespace N
 		struct sockaddr_in* in_addr;				// Pointer to sockaddr_in structure. Used to obtain ip and port.
 		char buf[INET_ADDRSTRLEN];					// Used in inet_ntop().
 		const std::string m_addr, m_port;			// Node and service.
+		std::map<std::string, std::string> contentTypes;
 
 		int startServer();
 		void closeServer();
@@ -41,6 +43,7 @@ namespace N
 		std::vector<std::string> tokenize(std::string input, char delim);
 		std::string selectResponse(std::string requestLine);
 		std::string buildResponse(std::string statusLine, std::string contentType, std::string fileName);
+		void createContentTypeMap();
 		void sendResponse(std::string response);
 	};
 } // namespace N

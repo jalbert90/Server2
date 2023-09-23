@@ -210,7 +210,8 @@ namespace N
 		// Body
 
 		std::vector<std::string> primaryTokens = tokenize(requestLine, ' ');
-		std::vector <std::string> secondaryTokens = tokenize(primaryTokens[1], '.');
+		std::vector<std::string> secondaryTokens = tokenize(primaryTokens[1], '.');
+		std::vector<std::string> tertiaryTokens = tokenize(primaryTokens[1], '/');
 
 		//for (auto& el : primaryTokens)
 		//{
@@ -225,8 +226,7 @@ namespace N
 		// Potential tools to read file:
 		// fopen(), fseek(), ftell()
 
-		std::string statusLine, contentType, header, body, line;
-		std::ostringstream oss;
+		std::string statusLine, contentType, fileName;
 
 		// Send index.html
 		if (primaryTokens[1] == "/")
@@ -238,15 +238,17 @@ namespace N
 		}
 		else
 		{
-			// Send JavaScript
-			if (secondaryTokens[1] == "js")
+			// Send file, if it is accessible.
+			fileName = tertiaryTokens[1];
+			std::ifstream f(fileName);
+			if (f)
 			{
 				statusLine = "HTTP/1.1 200 OK\r\n";
-				contentType = "text/javascript";
+				contentType = contentTypes[secondaryTokens[1]];
 
-				return buildResponse(statusLine, contentType, "myScript.js");
+				return buildResponse(statusLine, contentType, fileName);
 			}
-			else
+			else // Otherwise, send the index again :shrug:
 			{
 				statusLine = "HTTP/1.1 200 OK\r\n";
 				contentType = "text/html";
@@ -285,6 +287,12 @@ namespace N
 		oss << statusLine << header << body;
 
 		return oss.str();
+	}
+
+	void Server::createContentTypeMap()
+	{
+		contentTypes["html"] = "text/html";
+		contentTypes["js"] = "text/js";
 	}
 
 	void Server::closeServer()

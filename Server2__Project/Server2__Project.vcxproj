@@ -134,6 +134,7 @@
     <ClInclude Include="server.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="game.html" />
     <None Include="index.html" />
     <None Include="myScript.js" />
   </ItemGroup>

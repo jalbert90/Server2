@@ -32,5 +32,8 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="myScript.js" />
+    <None Include="game.html">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
