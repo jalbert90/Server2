@@ -145,7 +145,7 @@ namespace N
 			std::string requestLine = getRequestLine(recvBuf);
 			log(requestLine);
 
-			std::string serverMessage = buildResponse(requestLine);
+			std::string serverMessage = selectResponse(requestLine);
 			bytesSent = send(connectSocket, serverMessage.c_str(), (int)size(serverMessage), 0);
 			if (bytesSent == SOCKET_ERROR)
 			{
@@ -188,7 +188,7 @@ namespace N
 		return tokens;
 	}
 
-	std::string Server::buildResponse(std::string requestLine)
+	std::string Server::selectResponse(std::string requestLine)
 	{
 		/* This is what the request lines look like */
 		// GET / HTTP/1.1
@@ -234,63 +234,57 @@ namespace N
 			statusLine = "HTTP/1.1 200 OK\r\n";
 			contentType = "text/html";
 
-			std::ifstream input;
-			input.open("index.html");
-			while (input)
-			{
-				std::getline(input, line);
-				oss << line;
-			}
-			input.close();
-
-			body = oss.str();
-			oss.clear();
-			oss.str("");
-
-			oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
-			header = oss.str();
-			oss.clear();
-			oss.str("");
-
-			oss << statusLine << header << body;
-
-			return oss.str();
+			return buildResponse(statusLine, contentType, "index.html");
 		}
 		else
 		{
 			// Send JavaScript
 			if (secondaryTokens[1] == "js")
 			{
-				// To do...
+				statusLine = "HTTP/1.1 200 OK\r\n";
+				contentType = "text/javascript";
+
+				return buildResponse(statusLine, contentType, "myScript.js");
 			}
 			else
 			{
 				statusLine = "HTTP/1.1 200 OK\r\n";
 				contentType = "text/html";
 
-				std::ifstream input;
-				input.open("index.html");
-				while (input)
-				{
-					std::getline(input, line);
-					oss << line;
-				}
-				input.close();
-
-				body = oss.str();
-				oss.clear();
-				oss.str("");
-
-				oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
-				header = oss.str();
-				oss.clear();
-				oss.str("");
-
-				oss << statusLine << header << body;
-
-				return oss.str();
+				return buildResponse(statusLine, contentType, "index.html");
 			}
 		}
+	}
+
+	std::string Server::buildResponse(std::string statusLine, std::string contentType, std::string fileName)
+	{
+		std::string header, body, line;
+		std::ostringstream oss;
+
+		statusLine = "HTTP/1.1 200 OK\r\n";
+		contentType = "text/html";
+
+		std::ifstream input;
+		input.open(fileName);
+		while (input)
+		{
+			std::getline(input, line);
+			oss << line;
+		}
+		input.close();
+
+		body = oss.str();
+		oss.clear();
+		oss.str("");
+
+		oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
+		header = oss.str();
+		oss.clear();
+		oss.str("");
+
+		oss << statusLine << header << body;
+
+		return oss.str();
 	}
 
 	void Server::closeServer()

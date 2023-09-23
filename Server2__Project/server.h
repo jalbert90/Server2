@@ -37,9 +37,10 @@ namespace N
 		void closeServer();
 		void acceptConnection(SOCKET &connectSocket);
 		void handleConnection(SOCKET &connectSocket);
-		std::string buildResponse(std::string requestLine);
 		std::string getRequestLine(char* recvBuf);
 		std::vector<std::string> tokenize(std::string input, char delim);
+		std::string selectResponse(std::string requestLine);
+		std::string buildResponse(std::string statusLine, std::string contentType, std::string fileName);
 		void sendResponse(std::string response);
 	};
 } // namespace N
