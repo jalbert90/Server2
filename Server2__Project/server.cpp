@@ -122,7 +122,7 @@ namespace N
 	{
 		const int recvBufLen = 32768;
 		char* recvBuf = new char[recvBufLen] ();
-		int bytesRec, bytesSent;
+		int bytesRec;
 
 		bytesRec = recv(connectSocket, recvBuf, recvBufLen, 0);
 		if (bytesRec < 0)
@@ -146,14 +146,8 @@ namespace N
 			log(requestLine);
 
 			std::string serverMessage = selectResponse(requestLine);
-			bytesSent = send(connectSocket, serverMessage.c_str(), (int)size(serverMessage), 0);
-			if (bytesSent == SOCKET_ERROR)
-			{
-				closeServer();
-				exitWithError("Failed to send message", WSAGetLastError());
-			}
-			oss << "Sent " << bytesSent << " bytes";
-			log(oss.str());
+
+			sendResponse(connectSocket, serverMessage);
 		}
 
 		log("Connection closed\n");
@@ -263,9 +257,6 @@ namespace N
 		std::string header, body, line;
 		std::ostringstream oss;
 
-		statusLine = "HTTP/1.1 200 OK\r\n";
-		contentType = "text/html";
-
 		std::ifstream input;
 		input.open(fileName);
 		while (input)
@@ -289,10 +280,43 @@ namespace N
 		return oss.str();
 	}
 
+	void Server::sendResponse(SOCKET& connectSocket, std::string response)
+	{
+		std::ostringstream oss;
+		int bytesSent = 0;
+		int totalBytesSent = 0;
+
+		while (totalBytesSent < (int)size(response))
+		{
+			bytesSent = send(connectSocket, response.c_str(), (int)size(response), 0);
+			if (bytesSent < 0)
+			{
+				log("Failed to send response, breaking");
+				break;
+			}
+			totalBytesSent += bytesSent;
+
+			if (totalBytesSent == (int)size(response))
+			{
+				oss << "Sent " << totalBytesSent << " bytes out of " << (int)size(response) << " bytes";
+				log(oss.str());
+			}
+			else
+			{
+				log("Error sending response");
+				oss << "Sent " << totalBytesSent << " bytes out of " << (int)size(response) << " bytes";
+				log(oss.str());
+			}
+		}
+	}
+
 	void Server::createContentTypeMap()
 	{
+		// type/substype
+
 		contentTypes["html"] = "text/html";
 		contentTypes["js"] = "text/js";
+		contentTypes["jpg"] = "image/jpeg";
 	}
 
 	void Server::closeServer()
