@@ -19,6 +19,11 @@ namespace
 		log("Error Message: " + errorMessage + "\nError Code: " + ss.str());
 		exit(1);
 	}
+
+	void logError(std::string errorMessage, int errorCode)
+	{
+		log("Error Message: " + errorMessage + "\nError Code: " + std::to_string(errorCode));
+	}
 } // unnamed namespace
 
 namespace N
@@ -307,6 +312,24 @@ namespace N
 				oss << "Sent " << totalBytesSent << " bytes out of " << (int)size(response) << " bytes";
 				log(oss.str());
 			}
+		}
+	}
+
+	int Server::sendData(SOCKET& connectSocket, const void* data, int dataLength)
+	{
+		const char* ptr = static_cast<const char*>(data);
+		int bytesSent = 0;
+
+		while (dataLength > 0)
+		{
+			bytesSent = send(connectSocket, ptr, dataLength, 0);
+			if (bytesSent == SOCKET_ERROR)
+			{
+				logError("`sendData()` failed", WSAGetLastError());
+				return -1;
+			}
+			ptr += bytesSent;
+			dataLength -= bytesSent;
 		}
 	}
 

@@ -45,5 +45,7 @@ namespace N
 		std::string buildResponse(std::string statusLine, std::string contentType, std::string fileName);
 		void createContentTypeMap();
 		void sendResponse(SOCKET& connectSocket, std::string response);
+
+		int sendData(SOCKET& connectSocket, const void* data, int dataLength);
 	};
 } // namespace N
