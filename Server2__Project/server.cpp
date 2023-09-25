@@ -152,7 +152,7 @@ namespace N
 
 			std::string serverMessage = selectResponse(requestLine);
 
-			sendResponse(connectSocket, serverMessage);
+			sendResponseTemp(connectSocket, serverMessage);
 		}
 
 		log("Connection closed\n");
@@ -252,7 +252,8 @@ namespace N
 				statusLine = "HTTP/1.1 200 OK\r\n";
 				contentType = "text/html";
 
-				return buildResponse(statusLine, contentType, "index.html");
+				//return buildResponse(statusLine, contentType, "index.html");
+				return "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n";
 			}
 		}
 	}
@@ -285,7 +286,7 @@ namespace N
 		return oss.str();
 	}
 
-	void Server::sendResponse(SOCKET& connectSocket, std::string response)
+	void Server::sendResponseTemp(SOCKET& connectSocket, std::string response)
 	{
 		std::ostringstream oss;
 		int bytesSent = 0;
@@ -315,6 +316,63 @@ namespace N
 		}
 	}
 
+	void Server::sendResponse(SOCKET& connectSocket, std::string requestLine)
+	{
+		/* This is what the request lines look like */
+		// GET / HTTP/1.1
+		// GET /myScript.js HTTP/1.1
+		// GET /favicon.ico HTTP/1.1
+
+		// Bare minimum response with body:
+		/*
+			HTTP/1.1 200 OK
+			Content-Length: 12
+			Content-Type: text/plain; charset=utf-8
+
+			Hello World!
+		*/
+
+		// Response Structure:
+		// Status_Line\r\n
+		// Headers\r\n\r\n
+		// Body
+
+		std::vector<std::string> primaryTokens = tokenize(requestLine, ' ');
+		std::vector<std::string> secondaryTokens = tokenize(primaryTokens[1], '.');
+		std::vector<std::string> tertiaryTokens = tokenize(primaryTokens[1], '/');
+
+		std::string contentType, fileName;
+
+		if (primaryTokens[1] == "/") // Send index.html
+		{
+			contentType = "text/html";
+
+			sendTextFile(connectSocket, contentType, "index.html");
+		}
+		else if (tertiaryTokens[1] == "jpg") // Send binary file
+		{
+			contentType = contentTypes[secondaryTokens[1]];
+
+			sendBinaryFile(connectSocket, contentType, fileName);
+		}
+		else // Send text file
+		{
+			contentType = contentTypes[secondaryTokens[1]];
+
+			sendTextFile(connectSocket, contentType, fileName);
+		}
+	}
+
+	void Server::sendTextFile(SOCKET& connectSocket, std::string contentType, std::string fileName)
+	{
+		//
+	}
+
+	void Server::sendBinaryFile(SOCKET& connectSocket, std::string contentType, std::string fileName)
+	{
+		//
+	}
+
 	int Server::sendData(SOCKET& connectSocket, const void* data, int dataLength)
 	{
 		const char* ptr = static_cast<const char*>(data);
@@ -331,6 +389,12 @@ namespace N
 			ptr += bytesSent;
 			dataLength -= bytesSent;
 		}
+		return 0;
+	}
+
+	int Server::sendString(SOCKET& connectSocket, std::string str)
+	{
+		return sendData(connectSocket, str.c_str(), str.length());
 	}
 
 	void Server::createContentTypeMap()

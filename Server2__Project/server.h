@@ -43,9 +43,15 @@ namespace N
 		std::vector<std::string> tokenize(std::string input, char delim);
 		std::string selectResponse(std::string requestLine);
 		std::string buildResponse(std::string statusLine, std::string contentType, std::string fileName);
-		void createContentTypeMap();
-		void sendResponse(SOCKET& connectSocket, std::string response);
 
+		void sendResponseTemp(SOCKET& connectSocket, std::string response);
+		
+		
+		void sendResponse(SOCKET& connectSocket, std::string requestLine);
+		void sendTextFile(SOCKET& connectSocket, std::string contentType, std::string fileName);
+		void sendBinaryFile(SOCKET& connectSocket, std::string contentType, std::string fileName);
 		int sendData(SOCKET& connectSocket, const void* data, int dataLength);
+		int sendString(SOCKET& connectSocket, std::string str);
+		void createContentTypeMap();
 	};
 } // namespace N
