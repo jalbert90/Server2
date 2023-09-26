@@ -34,6 +34,7 @@ namespace N
 		char buf[INET_ADDRSTRLEN];					// Used in inet_ntop().
 		const std::string m_addr, m_port;			// Node and service.
 		std::map<std::string, std::string> contentTypes;
+		const std::string STATUS200 = "HTTP 1.1 200 OK\r\n";
 
 		int startServer();
 		void closeServer();
@@ -49,9 +50,10 @@ namespace N
 		
 		void sendResponse(SOCKET& connectSocket, std::string requestLine);
 		void sendTextFile(SOCKET& connectSocket, std::string contentType, std::string fileName);
-		void sendBinaryFile(SOCKET& connectSocket, std::string contentType, std::string fileName);
-		int sendData(SOCKET& connectSocket, const void* data, int dataLength);
-		int sendString(SOCKET& connectSocket, std::string str);
+		void sendBinaryFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
+		bool fileExists(const std::string& fileName);
+		int sendData(const SOCKET& connectSocket, const void* data, int dataLength);
+		int sendString(const SOCKET& connectSocket, const std::string& str);
 		void createContentTypeMap();
 	};
 } // namespace N

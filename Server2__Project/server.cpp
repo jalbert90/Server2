@@ -346,19 +346,16 @@ namespace N
 		if (primaryTokens[1] == "/") // Send index.html
 		{
 			contentType = "text/html";
-
 			sendTextFile(connectSocket, contentType, "index.html");
 		}
 		else if (tertiaryTokens[1] == "jpg") // Send binary file
 		{
 			contentType = contentTypes[secondaryTokens[1]];
-
 			sendBinaryFile(connectSocket, contentType, fileName);
 		}
 		else // Send text file
 		{
 			contentType = contentTypes[secondaryTokens[1]];
-
 			sendTextFile(connectSocket, contentType, fileName);
 		}
 	}
@@ -368,12 +365,58 @@ namespace N
 		//
 	}
 
-	void Server::sendBinaryFile(SOCKET& connectSocket, std::string contentType, std::string fileName)
+	void Server::sendBinaryFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
 	{
-		//
+		char buf[1024];
+
+		if (!fileExists(fileName))
+		{
+			log("Binary file not found");
+			if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+			{
+				closesocket(connectSocket);
+			}
+		}
+		else
+		{
+			std::ifstream f(fileName.c_str(), std::ios::binary);
+			if (!f.is_open())
+			{
+				log("Error opening binary file");
+				if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+				{
+					closesocket(connectSocket);
+				}
+			}
+			else
+			{
+				f.seekg(0, std::ios::end);
+				int fileLength = f.tellg();
+				f.seekg(0, std::ios::beg);
+
+				if (f.fail())
+				{
+					log("Failed to size binary file");
+					if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+					{
+						closesocket(connectSocket);
+					}
+				}
+				else if (sendString(connectSocket, STATUS200 + "Content-Length: " + std::to_string(fileLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n") == -1)
+				{
+					closesocket(connectSocket);
+				}
+			}
+		}
 	}
 
-	int Server::sendData(SOCKET& connectSocket, const void* data, int dataLength)
+	bool Server::fileExists(const std::string& fileName)
+	{
+		std::ifstream f(fileName.c_str());
+		return f.good();
+	}
+
+	int Server::sendData(const SOCKET& connectSocket, const void* data, int dataLength)
 	{
 		const char* ptr = static_cast<const char*>(data);
 		int bytesSent = 0;
@@ -392,7 +435,7 @@ namespace N
 		return 0;
 	}
 
-	int Server::sendString(SOCKET& connectSocket, std::string str)
+	int Server::sendString(const SOCKET& connectSocket, const std::string& str)
 	{
 		return sendData(connectSocket, str.c_str(), str.length());
 	}
