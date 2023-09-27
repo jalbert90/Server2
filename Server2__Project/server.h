@@ -48,8 +48,8 @@ namespace N
 		void sendResponseTemp(SOCKET& connectSocket, std::string response);
 		
 		
-		void sendResponse(SOCKET& connectSocket, std::string requestLine);
-		void sendTextFile(SOCKET& connectSocket, std::string contentType, std::string fileName);
+		void sendResponse(const SOCKET& connectSocket, const std::string& requestLine);
+		void sendTextFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
 		void sendBinaryFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
 		bool fileExists(const std::string& fileName);
 		int sendData(const SOCKET& connectSocket, const void* data, int dataLength);

@@ -150,9 +150,11 @@ namespace N
 			std::string requestLine = getRequestLine(recvBuf);
 			log(requestLine);
 
-			std::string serverMessage = selectResponse(requestLine);
+			sendResponse(connectSocket, requestLine);
 
-			sendResponseTemp(connectSocket, serverMessage);
+			//std::string serverMessage = selectResponse(requestLine);
+
+			//sendResponseTemp(connectSocket, serverMessage);
 		}
 
 		log("Connection closed\n");
@@ -316,7 +318,7 @@ namespace N
 		}
 	}
 
-	void Server::sendResponse(SOCKET& connectSocket, std::string requestLine)
+	void Server::sendResponse(const SOCKET& connectSocket, const std::string& requestLine)
 	{
 		/* This is what the request lines look like */
 		// GET / HTTP/1.1
@@ -360,15 +362,94 @@ namespace N
 		}
 	}
 
-	void Server::sendTextFile(SOCKET& connectSocket, std::string contentType, std::string fileName)
+	void Server::sendTextFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
 	{
-		//
+		if (!fileExists(fileName))
+		{
+			log("Text file not found");
+			if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+			{
+				closesocket(connectSocket);
+			}
+		}
+		else
+		{
+			std::ifstream f(fileName.c_str());
+			if (!f.is_open())
+			{
+				log("Error opening text file");
+				if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+				{
+					closesocket(connectSocket);
+				}
+			}
+			else
+			{
+				f.seekg(0, std::ios::end);
+				int fileLength = f.tellg();
+				f.seekg(0, std::ios::beg);
+
+				if (f.fail())
+				{
+					log("Failed to size text file");
+					if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+					{
+						closesocket(connectSocket);
+					}
+				}
+				else if (sendString(connectSocket, STATUS200 + "Content-Length: " + std::to_string(fileLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n") == -1)
+				{
+					closesocket(connectSocket);
+				}
+				else
+				{
+					std::string line;
+					while (std::getline(f, line))
+					{
+						// Check c++ book.
+					}
+
+
+
+					char buf[1024];
+					while (fileLength > 0)
+					{
+						if (!f.read(buf, min(sizeof(buf), fileLength)))
+						{
+							log("Failed to read text file");
+							if (f.bad())
+							{
+								log("badbit true");
+							}
+							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							{
+								closesocket(connectSocket);
+							}
+
+							break;
+						}
+
+						int bytesRead = f.gcount();
+						if (sendData(connectSocket, buf, bytesRead) == -1)
+						{
+							log("Failed to send text file");
+							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							{
+								closesocket(connectSocket);
+							}
+
+							break;
+						}
+
+						fileLength -= bytesRead;
+					}
+				}
+			}
+		}
 	}
 
 	void Server::sendBinaryFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
 	{
-		char buf[1024];
-
 		if (!fileExists(fileName))
 		{
 			log("Binary file not found");
@@ -405,6 +486,37 @@ namespace N
 				else if (sendString(connectSocket, STATUS200 + "Content-Length: " + std::to_string(fileLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
 					closesocket(connectSocket);
+				}
+				else
+				{
+					char buf[1024];
+					while (fileLength > 0)
+					{
+						if (!f.read(buf, min(sizeof(buf), fileLength)))
+						{
+							log("Failed to read binary file");
+							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							{
+								closesocket(connectSocket);
+							}
+
+							break;
+						}
+
+						int bytesRead = f.gcount();
+						if (sendData(connectSocket, buf, bytesRead) == -1)
+						{
+							log("Failed to send binary file");
+							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							{
+								closesocket(connectSocket);
+							}
+
+							break;
+						}
+
+						fileLength -= bytesRead;
+					}
 				}
 			}
 		}
