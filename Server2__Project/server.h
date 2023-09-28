@@ -49,7 +49,7 @@ namespace N
 		
 		
 		void sendResponse(const SOCKET& connectSocket, const std::string& requestLine);
-		void sendTextFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
+		void sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
 		void sendBinaryFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
 		bool fileExists(const std::string& fileName);
 		int sendData(const SOCKET& connectSocket, const void* data, int dataLength);

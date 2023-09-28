@@ -37,8 +37,12 @@ namespace N
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
 
+		createContentTypeMap();
+
 		code = startServer();
-		// Failed to start with port?
+		// Error check...failed to start with port...something something
+		// closeServer() ???
+		// exitwitherror
 	}
 
 	Server::~Server()
@@ -51,6 +55,9 @@ namespace N
 		code = WSAStartup(MAKEWORD(2, 2), &wsaData);
 		if (code != 0)
 		{
+			// change all of this to:
+			// log
+			// return -1
 			closeServer();
 			exitWithError("WSAStartup failed", code);
 			return 1;	// Should never get here.
@@ -129,6 +136,8 @@ namespace N
 		char* recvBuf = new char[recvBufLen] ();
 		int bytesRec;
 
+		// put in loop
+		// waiting for message
 		bytesRec = recv(connectSocket, recvBuf, recvBufLen, 0);
 		if (bytesRec < 0)
 		{
@@ -141,6 +150,7 @@ namespace N
 		}
 		else
 		{
+			// clean this up
 			std::ostringstream oss;
 			oss << "Received " << bytesRec << " bytes";
 			log(oss.str());
@@ -151,10 +161,6 @@ namespace N
 			log(requestLine);
 
 			sendResponse(connectSocket, requestLine);
-
-			//std::string serverMessage = selectResponse(requestLine);
-
-			//sendResponseTemp(connectSocket, serverMessage);
 		}
 
 		log("Connection closed\n");
@@ -189,135 +195,6 @@ namespace N
 		return tokens;
 	}
 
-	std::string Server::selectResponse(std::string requestLine)
-	{
-		/* This is what the request lines look like */
-		// GET / HTTP/1.1
-		// GET /myScript.js HTTP/1.1
-		// GET /favicon.ico HTTP/1.1
-
-		// Bare minimum response with body:
-		/*
-			HTTP/1.1 200 OK
-			Content-Length: 12
-			Content-Type: text/plain; charset=utf-8
-
-			Hello World!
-		*/
-
-		// Response Structure:
-		// Status_Line\r\n
-		// Headers\r\n\r\n
-		// Body
-
-		std::vector<std::string> primaryTokens = tokenize(requestLine, ' ');
-		std::vector<std::string> secondaryTokens = tokenize(primaryTokens[1], '.');
-		std::vector<std::string> tertiaryTokens = tokenize(primaryTokens[1], '/');
-
-		//for (auto& el : primaryTokens)
-		//{
-		//	std::cout << el << "\n";
-		//}
-
-		//for (auto& el : secondaryTokens)
-		//{
-		//	log(el);
-		//}
-
-		// Potential tools to read file:
-		// fopen(), fseek(), ftell()
-
-		std::string statusLine, contentType, fileName;
-
-		// Send index.html
-		if (primaryTokens[1] == "/")
-		{
-			statusLine = "HTTP/1.1 200 OK\r\n";
-			contentType = "text/html";
-
-			return buildResponse(statusLine, contentType, "index.html");
-		}
-		else
-		{
-			// Send file, if it is accessible.
-			fileName = tertiaryTokens[1];
-			std::ifstream f(fileName);
-			if (f)
-			{
-				statusLine = "HTTP/1.1 200 OK\r\n";
-				contentType = contentTypes[secondaryTokens[1]];
-
-				return buildResponse(statusLine, contentType, fileName);
-			}
-			else // Otherwise, send the index again :shrug:
-			{
-				statusLine = "HTTP/1.1 200 OK\r\n";
-				contentType = "text/html";
-
-				//return buildResponse(statusLine, contentType, "index.html");
-				return "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n";
-			}
-		}
-	}
-
-	std::string Server::buildResponse(std::string statusLine, std::string contentType, std::string fileName)
-	{
-		std::string header, body, line;
-		std::ostringstream oss;
-
-		std::ifstream input;
-		input.open(fileName);
-		while (input)
-		{
-			std::getline(input, line);
-			oss << line;
-		}
-		input.close();
-
-		body = oss.str();
-		oss.clear();
-		oss.str("");
-
-		oss << "Content-Length: " << body.size() << "\r\nContent-Type: " << contentType << "\r\n\r\n";
-		header = oss.str();
-		oss.clear();
-		oss.str("");
-
-		oss << statusLine << header << body;
-
-		return oss.str();
-	}
-
-	void Server::sendResponseTemp(SOCKET& connectSocket, std::string response)
-	{
-		std::ostringstream oss;
-		int bytesSent = 0;
-		int totalBytesSent = 0;
-
-		while (totalBytesSent < (int)size(response))
-		{
-			bytesSent = send(connectSocket, response.c_str(), (int)size(response), 0);
-			if (bytesSent < 0)
-			{
-				log("Failed to send response, breaking");
-				break;
-			}
-			totalBytesSent += bytesSent;
-
-			if (totalBytesSent == (int)size(response))
-			{
-				oss << "Sent " << totalBytesSent << " bytes out of " << (int)size(response) << " bytes";
-				log(oss.str());
-			}
-			else
-			{
-				log("Error sending response");
-				oss << "Sent " << totalBytesSent << " bytes out of " << (int)size(response) << " bytes";
-				log(oss.str());
-			}
-		}
-	}
-
 	void Server::sendResponse(const SOCKET& connectSocket, const std::string& requestLine)
 	{
 		/* This is what the request lines look like */
@@ -348,111 +225,21 @@ namespace N
 		if (primaryTokens[1] == "/") // Send index.html
 		{
 			contentType = "text/html";
-			sendTextFile(connectSocket, contentType, "index.html");
-		}
-		else if (tertiaryTokens[1] == "jpg") // Send binary file
-		{
-			contentType = contentTypes[secondaryTokens[1]];
-			sendBinaryFile(connectSocket, contentType, fileName);
-		}
-		else // Send text file
-		{
-			contentType = contentTypes[secondaryTokens[1]];
-			sendTextFile(connectSocket, contentType, fileName);
-		}
-	}
-
-	void Server::sendTextFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
-	{
-		if (!fileExists(fileName))
-		{
-			log("Text file not found");
-			if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
-			{
-				closesocket(connectSocket);
-			}
+			sendFileAsBinary(connectSocket, contentType, "index.html");
 		}
 		else
 		{
-			std::ifstream f(fileName.c_str());
-			if (!f.is_open())
-			{
-				log("Error opening text file");
-				if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
-				{
-					closesocket(connectSocket);
-				}
-			}
-			else
-			{
-				f.seekg(0, std::ios::end);
-				int fileLength = f.tellg();
-				f.seekg(0, std::ios::beg);
-
-				if (f.fail())
-				{
-					log("Failed to size text file");
-					if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
-					{
-						closesocket(connectSocket);
-					}
-				}
-				else if (sendString(connectSocket, STATUS200 + "Content-Length: " + std::to_string(fileLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n") == -1)
-				{
-					closesocket(connectSocket);
-				}
-				else
-				{
-					std::string line;
-					while (std::getline(f, line))
-					{
-						// Check c++ book.
-					}
-
-
-
-					char buf[1024];
-					while (fileLength > 0)
-					{
-						if (!f.read(buf, min(sizeof(buf), fileLength)))
-						{
-							log("Failed to read text file");
-							if (f.bad())
-							{
-								log("badbit true");
-							}
-							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
-							{
-								closesocket(connectSocket);
-							}
-
-							break;
-						}
-
-						int bytesRead = f.gcount();
-						if (sendData(connectSocket, buf, bytesRead) == -1)
-						{
-							log("Failed to send text file");
-							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
-							{
-								closesocket(connectSocket);
-							}
-
-							break;
-						}
-
-						fileLength -= bytesRead;
-					}
-				}
-			}
+			fileName = tertiaryTokens[1];
+			contentType = contentTypes[secondaryTokens[1]];
+			sendFileAsBinary(connectSocket, contentType, fileName);
 		}
 	}
 
-	void Server::sendBinaryFile(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
+	void Server::sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
 	{
 		if (!fileExists(fileName))
 		{
-			log("Binary file not found");
+			log(fileName+ " not found");
 			if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 			{
 				closesocket(connectSocket);
@@ -463,7 +250,7 @@ namespace N
 			std::ifstream f(fileName.c_str(), std::ios::binary);
 			if (!f.is_open())
 			{
-				log("Error opening binary file");
+				log("Error opening " + fileName);
 				if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
 					closesocket(connectSocket);
@@ -477,7 +264,7 @@ namespace N
 
 				if (f.fail())
 				{
-					log("Failed to size binary file");
+					log("Failed to size " + fileName);
 					if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 					{
 						closesocket(connectSocket);
@@ -490,11 +277,12 @@ namespace N
 				else
 				{
 					char buf[1024];
+					int totalBytesSent = 0;
 					while (fileLength > 0)
 					{
 						if (!f.read(buf, min(sizeof(buf), fileLength)))
 						{
-							log("Failed to read binary file");
+							log("Failed to read " + fileName);
 							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 							{
 								closesocket(connectSocket);
@@ -504,9 +292,10 @@ namespace N
 						}
 
 						int bytesRead = f.gcount();
-						if (sendData(connectSocket, buf, bytesRead) == -1)
+						int bytesSent = sendData(connectSocket, buf, bytesRead);
+						if (bytesSent == -1)
 						{
-							log("Failed to send binary file");
+							log("Failed to send " + fileName);
 							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 							{
 								closesocket(connectSocket);
@@ -516,7 +305,10 @@ namespace N
 						}
 
 						fileLength -= bytesRead;
+						totalBytesSent += bytesSent;
 					}
+
+					log("Sent " + std::to_string(totalBytesSent) + " bytes of binary in body");
 				}
 			}
 		}
@@ -532,6 +324,7 @@ namespace N
 	{
 		const char* ptr = static_cast<const char*>(data);
 		int bytesSent = 0;
+		int totalBytesSent = 0;
 
 		while (dataLength > 0)
 		{
@@ -543,8 +336,9 @@ namespace N
 			}
 			ptr += bytesSent;
 			dataLength -= bytesSent;
+			totalBytesSent += bytesSent;
 		}
-		return 0;
+		return totalBytesSent;
 	}
 
 	int Server::sendString(const SOCKET& connectSocket, const std::string& str)
@@ -557,7 +351,7 @@ namespace N
 		// type/substype
 
 		contentTypes["html"] = "text/html";
-		contentTypes["js"] = "text/js";
+		contentTypes["js"] = "text/javascript";
 		contentTypes["jpg"] = "image/jpeg";
 	}
 
