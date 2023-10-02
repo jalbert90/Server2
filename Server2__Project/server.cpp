@@ -28,6 +28,15 @@ namespace
 
 namespace N
 {
+	// Content Types
+	/* type/subtype */
+	const std::map<std::string, std::string> Server::contentTypes = {
+	{"html", "text/html"},
+	{"js", "text/javascript"},
+	{"jpg", "image/jpeg"},
+	{"ico", "image/x-icon"}
+	};
+
 	Server::Server(std::string addr, std::string port) : m_addr(addr), m_port(port)
 	{
 		ZeroMemory(&hints, sizeof(hints));
@@ -37,7 +46,7 @@ namespace N
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
 
-		createContentTypeMap();
+		//createContentTypeMap(); can delete
 
 		code = startServer();
 		// Error check...failed to start with port...something something
@@ -136,8 +145,7 @@ namespace N
 		char* recvBuf = new char[recvBufLen] ();
 		int bytesRec;
 
-		// put in loop
-		// waiting for message
+		log("Wating to receive...");
 		bytesRec = recv(connectSocket, recvBuf, recvBufLen, 0);
 		if (bytesRec < 0)
 		{
@@ -146,7 +154,7 @@ namespace N
 		}
 		else if (bytesRec == 0)
 		{
-			log("Connection closed...");
+			log("Connection gracefully closed by client");
 		}
 		else
 		{
@@ -163,7 +171,7 @@ namespace N
 			sendResponse(connectSocket, requestLine);
 		}
 
-		log("Connection closed\n");
+		log("Closing socket...\n");
 		closesocket(connectSocket);
 		delete[] recvBuf;
 	}
@@ -230,8 +238,27 @@ namespace N
 		else
 		{
 			fileName = tertiaryTokens[1];
-			contentType = contentTypes[secondaryTokens[1]];
-			sendFileAsBinary(connectSocket, contentType, fileName);
+
+			std::map<std::string, std::string>::const_iterator ci = contentTypes.find(secondaryTokens[1]);
+
+			if (ci == contentTypes.end())
+			{
+				log("Invalid File Type");
+				if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+				{
+					closesocket(connectSocket);
+				}
+			}
+			else
+			{
+				contentType = ci->second;
+				sendFileAsBinary(connectSocket, contentType, fileName);
+			}
+
+			//contentType
+
+			//contentType = contentTypes[secondaryTokens[1]];
+			//sendFileAsBinary(connectSocket, contentType, fileName);
 		}
 	}
 
@@ -346,17 +373,23 @@ namespace N
 		return sendData(connectSocket, str.c_str(), str.length());
 	}
 
-	void Server::createContentTypeMap()
-	{
-		// type/substype
+	//void Server::createContentTypeMap()
+	//{
+	//	// type/substype
 
-		contentTypes["html"] = "text/html";
-		contentTypes["js"] = "text/javascript";
-		contentTypes["jpg"] = "image/jpeg";
-	}
+	//	//contentTypes["html"] = "text/html";
+	//	//contentTypes["js"] = "text/javascript";
+	//	//contentTypes["jpg"] = "image/jpeg";
+	//	//contentTypes["ico"] = "image/x-icon";
+	//}
 
 	void Server::closeServer()
 	{
+		if (shutdown(connectSocket1, SD_SEND) == SOCKET_ERROR)
+		{
+			logError("Error shutting down send side", WSAGetLastError());
+		}
+
 		freeaddrinfo(result);
 		closesocket(listenSocket);
 		closesocket(connectSocket1);
