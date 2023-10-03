@@ -14,9 +14,7 @@ namespace
 
 	void exitWithError(std::string errorMessage, int errorCode)
 	{
-		std::stringstream ss;
-		ss << errorCode;
-		log("Error Message: " + errorMessage + "\nError Code: " + ss.str());
+		log("Error Message: " + errorMessage + "\nError Code: " + std::to_string(errorCode));
 		exit(1);
 	}
 
@@ -41,17 +39,17 @@ namespace N
 	{
 		ZeroMemory(&hints, sizeof(hints));
 
-		hints.ai_family = AF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;	// Use TCP
-		hints.ai_protocol = IPPROTO_TCP;
-		hints.ai_flags = AI_PASSIVE;
+		hints.ai_family = AF_UNSPEC;				// Adress family = IPv4 or IPv6
+		hints.ai_socktype = SOCK_STREAM;			// Socket type = reliable, two-way, connection based byte stream, OOB data transmission mechanism.
+		hints.ai_protocol = IPPROTO_TCP;			// Protocol = TCP
+		hints.ai_flags = AI_PASSIVE;				// Socket will bind
 
-		//createContentTypeMap(); can delete
-
-		code = startServer();
-		// Error check...failed to start with port...something something
-		// closeServer() ???
-		// exitwitherror
+		if (startServer() != 0)
+		{
+			log("`startServer()` failed");
+			closeServer();
+			exit(-1);
+		}
 	}
 
 	Server::~Server()
@@ -61,41 +59,35 @@ namespace N
 
 	int Server::startServer()
 	{
-		code = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		if (code != 0)
+		int err = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		if (err != 0)
 		{
-			// change all of this to:
-			// log
-			// return -1
-			closeServer();
-			exitWithError("WSAStartup failed", code);
-			return 1;	// Should never get here.
+			logError("`WSAStartup()` failed", err);
+			return -1;
 		}
 
 		listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (listenSocket == INVALID_SOCKET)
 		{
-			closeServer();
-			exitWithError("Failed to create socket", WSAGetLastError());
-			return 1;
+			logError("Failed to create socket", WSAGetLastError());
+			return -1;
 		}
 
 		// Pass the address of the result pointer.
 		// The contents at this address are then modified to contain the address
 		// of the first struct addrinfo item in a linked list.
-		code = getaddrinfo(m_addr.c_str(), m_port.c_str(), &hints, &result);
-		if (code != 0)
+		err = getaddrinfo(m_addr.c_str(), m_port.c_str(), &hints, &result);
+		if (err != 0)
 		{
-			closeServer();
-			exitWithError("getaddrinfo() failed", code);
+			logError("`getaddrinfo()` failed", err);
+			return -1;
 		}
 
 		// Pointer to sockaddr found in struct addrinfo.
-		code = bind(listenSocket, result->ai_addr, (int)result->ai_addrlen);
-		if (code != 0)
+		if (bind(listenSocket, result->ai_addr, (int)result->ai_addrlen) != 0)
 		{
-			closeServer();
-			exitWithError("Failed to bind server to socket", WSAGetLastError());
+			logError("Failed to bind server to socket", WSAGetLastError());
+			return -1;
 		}
 
 		return 0;
@@ -372,16 +364,6 @@ namespace N
 	{
 		return sendData(connectSocket, str.c_str(), str.length());
 	}
-
-	//void Server::createContentTypeMap()
-	//{
-	//	// type/substype
-
-	//	//contentTypes["html"] = "text/html";
-	//	//contentTypes["js"] = "text/javascript";
-	//	//contentTypes["jpg"] = "image/jpeg";
-	//	//contentTypes["ico"] = "image/x-icon";
-	//}
 
 	void Server::closeServer()
 	{
