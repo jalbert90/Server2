@@ -83,10 +83,23 @@ namespace N
 			return -1;
 		}
 
+		// Pointer to const sockaddr_in structure. Used to obtain ip and port.
+		// Cast pointer struct sockaddr to pointer to const sockaddr_in.
+		in_addr = (const struct sockaddr_in*)result->ai_addr;
+
+		// Temporarily hold CSTR version of IP stored in `result`
+		char buf[INET6_ADDRSTRLEN];
+
+		// Get CSTR and string versions of IP that was stored in `result`:
+		obtained_addr = inet_ntop(result->ai_family, &in_addr->sin_addr, buf, sizeof(buf));
+
+		// Get integer (u_short) version of IP that was stored in `result`:
+		obtained_port = ntohs(in_addr->sin_port);
+
 		// Pointer to sockaddr found in struct addrinfo.
 		if (bind(listenSocket, result->ai_addr, (int)result->ai_addrlen) != 0)
 		{
-			logError("Failed to bind server to socket", WSAGetLastError());
+			logError("Failed to bind socket to local address " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
 			return -1;
 		}
 
@@ -95,20 +108,16 @@ namespace N
 
 	void Server::startListening()
 	{
-		code = listen(listenSocket, 20);
-		if (code != 0)
+		if (listen(listenSocket, 4) != 0)
 		{
 			closeServer();
-			exitWithError("Couldn't start listening", WSAGetLastError());
+			exitWithError("Failed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
 		}
-
-		// Cast pointer to struct sockaddr to pointer to sockaddr_in.
-		in_addr = (struct sockaddr_in*)result->ai_addr;
 
 		std::ostringstream os;
 		os << "Listening on ...\n"
-			<< "Address: " << inet_ntop(result->ai_family, &in_addr->sin_addr, buf, sizeof(buf)) << "\n"		// Convert ip to printable format (PCSTR)
-			<< "Port: " << ntohs(in_addr->sin_port) << "\n";
+			<< "Address: " << obtained_addr << "\n"		// Convert ip to printable format (PCSTR)
+			<< "Port: " << obtained_port << "\n";
 
 		log(os.str());
 
