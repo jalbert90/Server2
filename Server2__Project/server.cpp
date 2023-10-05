@@ -114,33 +114,38 @@ namespace N
 			exitWithError("Failed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
 		}
 
-		std::ostringstream os;
-		os << "Listening on ...\n"
-			<< "Address: " << obtained_addr << "\n"		// Convert ip to printable format (PCSTR)
-			<< "Port: " << obtained_port << "\n";
-
-		log(os.str());
+		log("Listening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port));
 
 		while (true)
 		{
-			acceptConnection(connectSocket1);
-			handleConnection(connectSocket1);
+			if (acceptConnection(connectSocket1) != 0)
+			{
+				log("`acceptConnection() failed");
+				closeServer();
+				exit(-1);
+			}
+			if (handleConnection(connectSocket1) != 0)
+			{
+				log("`handleConnection()` failed\n");
+			}
 		}
 	}
 
-	void Server::acceptConnection(SOCKET &connectSocket)
+	int Server::acceptConnection(SOCKET &connectSocket)
 	{
 		log("Waiting for connection...");
 		connectSocket = accept(listenSocket, NULL, NULL);
 		if (connectSocket == INVALID_SOCKET)
 		{
-			closeServer();
-			exitWithError("Failed to accept connection:", WSAGetLastError());
+			logError("Failed to accept connection:", WSAGetLastError());
+			return -1;
 		}
+
 		log("Connection established");
+		return 0;
 	}
 
-	void Server::handleConnection(SOCKET &connectSocket)
+	int Server::handleConnection(SOCKET &connectSocket)
 	{
 		const int recvBufLen = 32768;
 		char* recvBuf = new char[recvBufLen] ();
@@ -150,8 +155,12 @@ namespace N
 		bytesRec = recv(connectSocket, recvBuf, recvBufLen, 0);
 		if (bytesRec < 0)
 		{
-			closeServer();
-			exitWithError("Error receiving data from client", WSAGetLastError());
+			logError("Error receiving data from client", WSAGetLastError());
+			log("Closing socket...\n");
+			closesocket(connectSocket);
+			delete[] recvBuf;
+
+			return -1;
 		}
 		else if (bytesRec == 0)
 		{
@@ -159,22 +168,23 @@ namespace N
 		}
 		else
 		{
-			// clean this up
-			std::ostringstream oss;
-			oss << "Received " << bytesRec << " bytes";
-			log(oss.str());
-			oss.clear();
-			oss.str("");
+			log("Received " + std::to_string(bytesRec) + " bytes");
 
 			std::string requestLine = getRequestLine(recvBuf);
 			log(requestLine);
 
-			sendResponse(connectSocket, requestLine);
+			if (sendResponse(connectSocket, requestLine) != 0)
+			{
+				log("`sendResponse()` failed");
+				return -1;
+			}
 		}
 
 		log("Closing socket...\n");
 		closesocket(connectSocket);
 		delete[] recvBuf;
+
+		return 0;
 	}
 
 	std::string Server::getRequestLine(char* recvBuf)
@@ -188,23 +198,7 @@ namespace N
 		return requestLine;
 	}
 
-	std::vector<std::string> Server::tokenize(std::string input, char delim)
-	{
-		std::vector<std::string> tokens;
-		std::string token;
-		std::stringstream ss;
-
-		ss << input;
-
-		while (std::getline(ss, token, delim))
-		{
-			tokens.push_back(token);
-		}
-
-		return tokens;
-	}
-
-	void Server::sendResponse(const SOCKET& connectSocket, const std::string& requestLine)
+	int Server::sendResponse(const SOCKET& connectSocket, const std::string& requestLine)
 	{
 		/* This is what the request lines look like */
 		// GET / HTTP/1.1
@@ -225,23 +219,25 @@ namespace N
 		// Headers\r\n\r\n
 		// Body
 
-		std::vector<std::string> primaryTokens = tokenize(requestLine, ' ');
-		std::vector<std::string> secondaryTokens = tokenize(primaryTokens[1], '.');
-		std::vector<std::string> tertiaryTokens = tokenize(primaryTokens[1], '/');
+		std::vector<std::string> spaceTokens = tokenize(requestLine, ' ');
+		std::vector<std::string> periodTokens = tokenize(spaceTokens[1], '.');
+		std::vector<std::string> slashTokens = tokenize(spaceTokens[1], '/');
 
 		std::string contentType, fileName;
 
-		if (primaryTokens[1] == "/") // Send index.html
+		if (spaceTokens[1] == "/") // Send index.html
 		{
 			contentType = "text/html";
-			sendFileAsBinary(connectSocket, contentType, "index.html");
+			if (sendFileAsBinary(connectSocket, contentType, "index.html") != 0)
+			{
+				log("`sendFileAsBinary()` failed");
+				return -1;
+			}
 		}
 		else
 		{
-			fileName = tertiaryTokens[1];
-
-			std::map<std::string, std::string>::const_iterator ci = contentTypes.find(secondaryTokens[1]);
-
+			fileName = slashTokens[1];
+			std::map<std::string, std::string>::const_iterator ci = contentTypes.find(periodTokens[1]);
 			if (ci == contentTypes.end())
 			{
 				log("Invalid File Type");
@@ -249,29 +245,50 @@ namespace N
 				{
 					closesocket(connectSocket);
 				}
+
+				return -1;
 			}
 			else
 			{
 				contentType = ci->second;
-				sendFileAsBinary(connectSocket, contentType, fileName);
+				if (sendFileAsBinary(connectSocket, contentType, fileName) != 0)
+				{
+					log("`sendFileAsBinary()` failed");
+					return -1;
+				}
 			}
-
-			//contentType
-
-			//contentType = contentTypes[secondaryTokens[1]];
-			//sendFileAsBinary(connectSocket, contentType, fileName);
 		}
+
+		return 0;
 	}
 
-	void Server::sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
+	std::vector<std::string> Server::tokenize(std::string input, char delim)
+	{
+		std::vector<std::string> tokens;
+		std::string token;
+		std::stringstream ss;
+
+		ss << input;
+
+		while (std::getline(ss, token, delim))
+		{
+			tokens.push_back(token);
+		}
+
+		return tokens;
+	}
+
+	int Server::sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
 	{
 		if (!fileExists(fileName))
 		{
-			log(fileName+ " not found");
+			log(fileName + " not found");
 			if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 			{
 				closesocket(connectSocket);
 			}
+
+			return -1;
 		}
 		else
 		{
@@ -283,6 +300,8 @@ namespace N
 				{
 					closesocket(connectSocket);
 				}
+
+				return -1;
 			}
 			else
 			{
@@ -297,6 +316,8 @@ namespace N
 					{
 						closesocket(connectSocket);
 					}
+
+					return -1;
 				}
 				else if (sendString(connectSocket, STATUS200 + "Content-Length: " + std::to_string(fileLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
@@ -316,20 +337,21 @@ namespace N
 								closesocket(connectSocket);
 							}
 
-							break;
+							return -1;
 						}
 
 						int bytesRead = f.gcount();
 						int bytesSent = sendData(connectSocket, buf, bytesRead);
 						if (bytesSent == -1)
 						{
+							log("`sendData()` failed");
 							log("Failed to send " + fileName);
 							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 							{
 								closesocket(connectSocket);
 							}
 
-							break;
+							return -1;
 						}
 
 						fileLength -= bytesRead;
@@ -337,6 +359,7 @@ namespace N
 					}
 
 					log("Sent " + std::to_string(totalBytesSent) + " bytes of binary in body");
+					return 0;
 				}
 			}
 		}
@@ -359,7 +382,7 @@ namespace N
 			bytesSent = send(connectSocket, ptr, dataLength, 0);
 			if (bytesSent == SOCKET_ERROR)
 			{
-				logError("`sendData()` failed", WSAGetLastError());
+				logError("`send()` failed", WSAGetLastError());
 				return -1;
 			}
 			ptr += bytesSent;
@@ -385,6 +408,5 @@ namespace N
 		closesocket(listenSocket);
 		closesocket(connectSocket1);
 		WSACleanup();
-		// If I exit here then the destructor won't finish.
 	}
-}
+} // namespace N

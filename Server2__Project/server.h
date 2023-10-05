@@ -36,12 +36,12 @@ namespace N
 		const std::string STATUS200 = "HTTP 1.1 200 OK\r\n";
 
 		int startServer();
-		void acceptConnection(SOCKET &connectSocket);
-		void handleConnection(SOCKET &connectSocket);
+		int acceptConnection(SOCKET &connectSocket);
+		int handleConnection(SOCKET &connectSocket);
 		std::string getRequestLine(char* recvBuf);
+		int sendResponse(const SOCKET& connectSocket, const std::string& requestLine);
 		std::vector<std::string> tokenize(std::string input, char delim);
-		void sendResponse(const SOCKET& connectSocket, const std::string& requestLine);
-		void sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
+		int sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
 		bool fileExists(const std::string& fileName);
 		int sendData(const SOCKET& connectSocket, const void* data, int dataLength);
 		int sendString(const SOCKET& connectSocket, const std::string& str);
