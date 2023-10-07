@@ -204,6 +204,7 @@ namespace N
 		// GET / HTTP/1.1
 		// GET /myScript.js HTTP/1.1
 		// GET /favicon.ico HTTP/1.1
+		// GET /?input=space+test HTTP/1.1
 
 		// Bare minimum response with body:
 		/*
@@ -233,6 +234,19 @@ namespace N
 				log("`sendFileAsBinary()` failed");
 				return -1;
 			}
+		}
+		else if (spaceTokens[1][1] == '?')
+		{
+			std::vector<std::string> equalsTokens = tokenize(spaceTokens[1], '=');
+			log(equalsTokens[1]);
+
+			contentType = "text/html";
+			if (sendFileAsBinary(connectSocket, contentType, "index.html") != 0)
+			{
+				log("`sendFileAsBinary()` failed");
+				return -1;
+			}
+
 		}
 		else
 		{
@@ -395,6 +409,29 @@ namespace N
 	int Server::sendString(const SOCKET& connectSocket, const std::string& str)
 	{
 		return sendData(connectSocket, str.c_str(), str.length());
+	}
+
+	std::string Server::getHeader(int contentLength, const std::string& contentType)
+	{
+		if (contentType == "")
+		{
+			return "Content-Length: " + std::to_string(contentLength) + "\r\nConnection: keep-alive\r\n\r\n";
+		}
+		else
+		{
+			return "Content-Length: " + std::to_string(contentLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n";
+		}
+	}
+
+	std::string Server::getStatus(int statusCode)
+	{
+		switch (statusCode) {
+		case 200:
+			return "HTTP 1.1 200 OK\r\n";
+			break;
+		default:
+			return "HTTP 500 Error\r\n";
+		}
 	}
 
 	void Server::closeServer()

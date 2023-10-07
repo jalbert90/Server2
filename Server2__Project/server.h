@@ -45,6 +45,8 @@ namespace N
 		bool fileExists(const std::string& fileName);
 		int sendData(const SOCKET& connectSocket, const void* data, int dataLength);
 		int sendString(const SOCKET& connectSocket, const std::string& str);
+		std::string getHeader(int contentLength, const std::string& contentType="");
+		std::string getStatus(int statusCode);
 		void closeServer();
 	};
 } // namespace N
