@@ -1,4 +1,5 @@
 #include "server.h"
+#include "parser.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -114,7 +115,7 @@ namespace N
 			exitWithError("Failed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
 		}
 
-		log("Listening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port));
+		log("Listening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port) + "\n");
 
 		while (true)
 		{
@@ -169,6 +170,9 @@ namespace N
 		else
 		{
 			log("Received " + std::to_string(bytesRec) + " bytes");
+
+			tools::Parser parser;
+			parser.parse(recvBuf);
 
 			std::string requestLine = getRequestLine(recvBuf);
 			log(requestLine);
