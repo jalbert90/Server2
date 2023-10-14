@@ -17,6 +17,6 @@ namespace tools
 		std::string fileName;
 		std::string fileExtension;
 
-		std::vector<std::string> tokenize(const std::string& input, const char delim);
+		std::vector<std::string> tokenize(const std::string& input, const std::string& delim);
 	};
 } // namespace P
