@@ -11,12 +11,13 @@ namespace tools
 		void parse(const std::string& httpRequest);
 
 	private:
-		std::string requestLine;
-		std::string method;
-		std::string request;
-		std::string fileName;
-		std::string fileExtension;
+		std::string requestLine = "",
+			method = "",
+			request = "",
+			fileName = "",
+			fileExt = "",
+			input = "";
 
-		std::vector<std::string> tokenize(const std::string& input, const std::string& delim);
+		std::vector<std::string> tokenize(const std::string& input, const std::string& delim = "\n");
 	};
-} // namespace P
+} // namespace tools
