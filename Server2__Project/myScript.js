@@ -13,7 +13,18 @@ function onSubmit(event) {
     event.preventDefault();
     let query = document.querySelector('[name="query"]').value;
 
-    fetch("/?query=" + query).then(response => { response.text() }).then(text => { console.log(text) });
+    fetch("/?search=" + query).then(response => {
+        if (response.ok) {
+            return response.text()
+        }
+        else {
+            throw new Error("Server not ok error");
+        }
+    }).then(text => {
+        results.innerHTML = text;
+    }).catch(error => {
+        console.error(error);
+    });
 }
 
 btn.addEventListener("click", btnPress);

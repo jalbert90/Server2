@@ -242,7 +242,7 @@ namespace N
 		else if (spaceTokens[1][1] == '?')
 		{
 			std::vector<std::string> equalsTokens = tokenize(spaceTokens[1], '=');
-			log(equalsTokens[1]);
+			log("equals tokens 1: " + equalsTokens[1]);
 
 			contentType = "text/html";
 			if (sendFileAsBinary(connectSocket, contentType, "index.html") != 0)
