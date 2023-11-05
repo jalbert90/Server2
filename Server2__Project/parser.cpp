@@ -3,6 +3,26 @@
 
 namespace tools
 {
+	std::string Parser::getRequest()
+	{
+		return this->request;
+	}
+
+	std::string Parser::getSearchTrigger()
+	{
+		return this->searchTrigger;
+	}
+
+	std::string Parser::getFileName()
+	{
+		return this->fileName;
+	}
+
+	std::string Parser::getFileExt()
+	{
+		return this->fileExt;
+	}
+
 	/* This is what the request lines look like */
 	// GET / HTTP/1.1
 	// GET /myScript.js HTTP/1.1
@@ -29,6 +49,7 @@ namespace tools
 		}
 		else if (request[1] == '?')
 		{
+			searchTrigger = request[1];
 			input = tokenize(request, "=")[1];
 			log("Input: " + input);
 		}

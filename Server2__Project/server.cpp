@@ -171,13 +171,7 @@ namespace N
 		{
 			log("Received " + std::to_string(bytesRec) + " bytes");
 
-			tools::Parser parser;
-			parser.parse(recvBuf);
-
-			std::string requestLine = getRequestLine(recvBuf);
-			log(requestLine);
-
-			if (sendResponse(connectSocket, requestLine) != 0)
+			if (sendResponse(connectSocket, recvBuf) != 0)
 			{
 				log("`sendResponse()` failed");
 				return -1;
@@ -191,18 +185,7 @@ namespace N
 		return 0;
 	}
 
-	std::string Server::getRequestLine(char* recvBuf)
-	{
-		std::stringstream ss;
-		std::string requestLine;
-
-		ss << recvBuf;
-		std::getline(ss, requestLine, '\n');
-
-		return requestLine;
-	}
-
-	int Server::sendResponse(const SOCKET& connectSocket, const std::string& requestLine)
+	int Server::sendResponse(const SOCKET& connectSocket, const std::string& recvBuf)
 	{
 		/* This is what the request lines look like */
 		// GET / HTTP/1.1
@@ -224,13 +207,12 @@ namespace N
 		// Headers\r\n\r\n
 		// Body
 
-		std::vector<std::string> spaceTokens = tokenize(requestLine, ' ');
-		std::vector<std::string> periodTokens = tokenize(spaceTokens[1], '.');
-		std::vector<std::string> slashTokens = tokenize(spaceTokens[1], '/');
+		tools::Parser parser;
+		parser.parse(recvBuf);
 
-		std::string contentType, fileName;
+		std::string contentType;
 
-		if (spaceTokens[1] == "/") // Send index.html
+		if (parser.getRequest() == "/") // Send index.html
 		{
 			contentType = "text/html";
 			if (sendFileAsBinary(connectSocket, contentType, "index.html") != 0)
@@ -239,10 +221,10 @@ namespace N
 				return -1;
 			}
 		}
-		else if (spaceTokens[1][1] == '?')
+		else if (parser.getSearchTrigger() == "?")
 		{
-			std::vector<std::string> equalsTokens = tokenize(spaceTokens[1], '=');
-			log("equals tokens 1: " + equalsTokens[1]);
+			// Find result
+			// Send string
 
 			contentType = "text/html";
 			if (sendFileAsBinary(connectSocket, contentType, "index.html") != 0)
@@ -254,8 +236,7 @@ namespace N
 		}
 		else
 		{
-			fileName = slashTokens[1];
-			std::map<std::string, std::string>::const_iterator ci = contentTypes.find(periodTokens[1]);
+			std::map<std::string, std::string>::const_iterator ci = contentTypes.find(parser.getFileExt());
 			if (ci == contentTypes.end())
 			{
 				log("Invalid File Type");
@@ -269,7 +250,7 @@ namespace N
 			else
 			{
 				contentType = ci->second;
-				if (sendFileAsBinary(connectSocket, contentType, fileName) != 0)
+				if (sendFileAsBinary(connectSocket, contentType, parser.getFileName()) != 0)
 				{
 					log("`sendFileAsBinary()` failed");
 					return -1;
@@ -278,22 +259,6 @@ namespace N
 		}
 
 		return 0;
-	}
-
-	std::vector<std::string> Server::tokenize(std::string input, char delim)
-	{
-		std::vector<std::string> tokens;
-		std::string token;
-		std::stringstream ss;
-
-		ss << input;
-
-		while (std::getline(ss, token, delim))
-		{
-			tokens.push_back(token);
-		}
-
-		return tokens;
 	}
 
 	int Server::sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)

@@ -13,7 +13,7 @@ function onSubmit(event) {
     event.preventDefault();
     let query = document.querySelector('[name="query"]').value;
 
-    fetch("/?search=" + query).then(response => {
+    fetch("/?query=" + query).then(response => {
         if (response.ok) {
             return response.text()
         }

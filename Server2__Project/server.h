@@ -38,9 +38,7 @@ namespace N
 		int startServer();
 		int acceptConnection(SOCKET &connectSocket);
 		int handleConnection(SOCKET &connectSocket);
-		std::string getRequestLine(char* recvBuf);
-		int sendResponse(const SOCKET& connectSocket, const std::string& requestLine);
-		std::vector<std::string> tokenize(std::string input, char delim);
+		int sendResponse(const SOCKET& connectSocket, const std::string& recvBuf);
 		int sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
 		bool fileExists(const std::string& fileName);
 		int sendData(const SOCKET& connectSocket, const void* data, int dataLength);
