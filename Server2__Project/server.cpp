@@ -225,14 +225,14 @@ namespace N
 		{
 			// Find result
 			// Send string
-
 			contentType = "text/html";
-			if (sendFileAsBinary(connectSocket, contentType, "index.html") != 0)
+			std::string tempMessage = "check";
+			
+			if (sendString(connectSocket, getStatus(200) + getHeader(tempMessage.length(), contentType) + tempMessage) == -1)
 			{
-				log("`sendFileAsBinary()` failed");
+				log("`sendString()` failed while sending search result");
 				return -1;
 			}
-
 		}
 		else
 		{
@@ -240,7 +240,7 @@ namespace N
 			if (ci == contentTypes.end())
 			{
 				log("Invalid File Type");
-				if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+				if (sendString(connectSocket, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
 					closesocket(connectSocket);
 				}
@@ -266,7 +266,7 @@ namespace N
 		if (!fileExists(fileName))
 		{
 			log(fileName + " not found");
-			if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+			if (sendString(connectSocket, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 			{
 				closesocket(connectSocket);
 			}
@@ -279,7 +279,7 @@ namespace N
 			if (!f.is_open())
 			{
 				log("Error opening " + fileName);
-				if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+				if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
 					closesocket(connectSocket);
 				}
@@ -295,7 +295,7 @@ namespace N
 				if (f.fail())
 				{
 					log("Failed to size " + fileName);
-					if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+					if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 					{
 						closesocket(connectSocket);
 					}
@@ -315,7 +315,7 @@ namespace N
 						if (!f.read(buf, min(sizeof(buf), fileLength)))
 						{
 							log("Failed to read " + fileName);
-							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 							{
 								closesocket(connectSocket);
 							}
@@ -329,7 +329,7 @@ namespace N
 						{
 							log("`sendData()` failed");
 							log("Failed to send " + fileName);
-							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 							{
 								closesocket(connectSocket);
 							}
@@ -396,10 +396,10 @@ namespace N
 	{
 		switch (statusCode) {
 		case 200:
-			return "HTTP 1.1 200 OK\r\n";
+			return "HTTP/1.1 200 OK\r\n";
 			break;
 		default:
-			return "HTTP 500 Error\r\n";
+			return "HTTP/1.1 500 Error\r\n";
 		}
 	}
 

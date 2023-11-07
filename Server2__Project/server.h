@@ -33,7 +33,7 @@ namespace N
 		const struct sockaddr_in* in_addr;										// Pointer to const sockaddr_in structure. Used to obtain ip and port.
 		std::string obtained_addr;												// String version of IP obtained from `getaddrinfo()`.
 		u_short obtained_port;													// Port obtained from `getaddrinfo()` will be stored here.
-		const std::string STATUS200 = "HTTP 1.1 200 OK\r\n";
+		const std::string STATUS200 = "HTTP/1.1 200 OK\r\n";
 
 		int startServer();
 		int acceptConnection(SOCKET &connectSocket);

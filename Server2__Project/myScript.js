@@ -24,6 +24,7 @@ function onSubmit(event) {
         results.innerHTML = text;
     }).catch(error => {
         console.error(error);
+        alert(error);
     });
 }
 
