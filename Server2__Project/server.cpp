@@ -1,4 +1,5 @@
 #include "server.h"
+#include "parser.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -114,7 +115,7 @@ namespace N
 			exitWithError("Failed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
 		}
 
-		log("Listening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port));
+		log("Listening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port) + "\n");
 
 		while (true)
 		{
@@ -170,10 +171,7 @@ namespace N
 		{
 			log("Received " + std::to_string(bytesRec) + " bytes");
 
-			std::string requestLine = getRequestLine(recvBuf);
-			log(requestLine);
-
-			if (sendResponse(connectSocket, requestLine) != 0)
+			if (sendResponse(connectSocket, recvBuf) != 0)
 			{
 				log("`sendResponse()` failed");
 				return -1;
@@ -187,23 +185,13 @@ namespace N
 		return 0;
 	}
 
-	std::string Server::getRequestLine(char* recvBuf)
-	{
-		std::stringstream ss;
-		std::string requestLine;
-
-		ss << recvBuf;
-		std::getline(ss, requestLine, '\n');
-
-		return requestLine;
-	}
-
-	int Server::sendResponse(const SOCKET& connectSocket, const std::string& requestLine)
+	int Server::sendResponse(const SOCKET& connectSocket, const std::string& recvBuf)
 	{
 		/* This is what the request lines look like */
 		// GET / HTTP/1.1
 		// GET /myScript.js HTTP/1.1
 		// GET /favicon.ico HTTP/1.1
+		// GET /?input=space+test HTTP/1.1
 
 		// Bare minimum response with body:
 		/*
@@ -219,13 +207,12 @@ namespace N
 		// Headers\r\n\r\n
 		// Body
 
-		std::vector<std::string> spaceTokens = tokenize(requestLine, ' ');
-		std::vector<std::string> periodTokens = tokenize(spaceTokens[1], '.');
-		std::vector<std::string> slashTokens = tokenize(spaceTokens[1], '/');
+		tools::Parser parser;
+		parser.parse(recvBuf);
 
-		std::string contentType, fileName;
+		std::string contentType;
 
-		if (spaceTokens[1] == "/") // Send index.html
+		if (parser.getRequest() == "/") // Send index.html
 		{
 			contentType = "text/html";
 			if (sendFileAsBinary(connectSocket, contentType, "index.html") != 0)
@@ -234,14 +221,26 @@ namespace N
 				return -1;
 			}
 		}
+		else if (parser.getSearchTrigger() == "?")
+		{
+			// Find result
+			// Send string
+			contentType = "text/html";
+			std::string tempMessage = "check";
+			
+			if (sendString(connectSocket, getStatus(200) + getHeader(tempMessage.length(), contentType) + tempMessage) == -1)
+			{
+				log("`sendString()` failed while sending search result");
+				return -1;
+			}
+		}
 		else
 		{
-			fileName = slashTokens[1];
-			std::map<std::string, std::string>::const_iterator ci = contentTypes.find(periodTokens[1]);
+			std::map<std::string, std::string>::const_iterator ci = contentTypes.find(parser.getFileExt());
 			if (ci == contentTypes.end())
 			{
 				log("Invalid File Type");
-				if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+				if (sendString(connectSocket, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
 					closesocket(connectSocket);
 				}
@@ -251,7 +250,7 @@ namespace N
 			else
 			{
 				contentType = ci->second;
-				if (sendFileAsBinary(connectSocket, contentType, fileName) != 0)
+				if (sendFileAsBinary(connectSocket, contentType, parser.getFileName()) != 0)
 				{
 					log("`sendFileAsBinary()` failed");
 					return -1;
@@ -262,28 +261,12 @@ namespace N
 		return 0;
 	}
 
-	std::vector<std::string> Server::tokenize(std::string input, char delim)
-	{
-		std::vector<std::string> tokens;
-		std::string token;
-		std::stringstream ss;
-
-		ss << input;
-
-		while (std::getline(ss, token, delim))
-		{
-			tokens.push_back(token);
-		}
-
-		return tokens;
-	}
-
 	int Server::sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName)
 	{
 		if (!fileExists(fileName))
 		{
 			log(fileName + " not found");
-			if (sendString(connectSocket, "HTTP 1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+			if (sendString(connectSocket, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 			{
 				closesocket(connectSocket);
 			}
@@ -296,7 +279,7 @@ namespace N
 			if (!f.is_open())
 			{
 				log("Error opening " + fileName);
-				if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+				if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
 					closesocket(connectSocket);
 				}
@@ -312,7 +295,7 @@ namespace N
 				if (f.fail())
 				{
 					log("Failed to size " + fileName);
-					if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+					if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 					{
 						closesocket(connectSocket);
 					}
@@ -332,7 +315,7 @@ namespace N
 						if (!f.read(buf, min(sizeof(buf), fileLength)))
 						{
 							log("Failed to read " + fileName);
-							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 							{
 								closesocket(connectSocket);
 							}
@@ -346,7 +329,7 @@ namespace N
 						{
 							log("`sendData()` failed");
 							log("Failed to send " + fileName);
-							if (sendString(connectSocket, "HTTP 1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
+							if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 							{
 								closesocket(connectSocket);
 							}
@@ -395,6 +378,29 @@ namespace N
 	int Server::sendString(const SOCKET& connectSocket, const std::string& str)
 	{
 		return sendData(connectSocket, str.c_str(), str.length());
+	}
+
+	std::string Server::getHeader(int contentLength, const std::string& contentType)
+	{
+		if (contentType == "")
+		{
+			return "Content-Length: " + std::to_string(contentLength) + "\r\nConnection: keep-alive\r\n\r\n";
+		}
+		else
+		{
+			return "Content-Length: " + std::to_string(contentLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n";
+		}
+	}
+
+	std::string Server::getStatus(int statusCode)
+	{
+		switch (statusCode) {
+		case 200:
+			return "HTTP/1.1 200 OK\r\n";
+			break;
+		default:
+			return "HTTP/1.1 500 Error\r\n";
+		}
 	}
 
 	void Server::closeServer()

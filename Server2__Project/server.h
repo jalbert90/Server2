@@ -33,18 +33,18 @@ namespace N
 		const struct sockaddr_in* in_addr;										// Pointer to const sockaddr_in structure. Used to obtain ip and port.
 		std::string obtained_addr;												// String version of IP obtained from `getaddrinfo()`.
 		u_short obtained_port;													// Port obtained from `getaddrinfo()` will be stored here.
-		const std::string STATUS200 = "HTTP 1.1 200 OK\r\n";
+		const std::string STATUS200 = "HTTP/1.1 200 OK\r\n";
 
 		int startServer();
 		int acceptConnection(SOCKET &connectSocket);
 		int handleConnection(SOCKET &connectSocket);
-		std::string getRequestLine(char* recvBuf);
-		int sendResponse(const SOCKET& connectSocket, const std::string& requestLine);
-		std::vector<std::string> tokenize(std::string input, char delim);
+		int sendResponse(const SOCKET& connectSocket, const std::string& recvBuf);
 		int sendFileAsBinary(const SOCKET& connectSocket, const std::string& contentType, const std::string& fileName);
 		bool fileExists(const std::string& fileName);
 		int sendData(const SOCKET& connectSocket, const void* data, int dataLength);
 		int sendString(const SOCKET& connectSocket, const std::string& str);
+		std::string getHeader(int contentLength, const std::string& contentType="");
+		std::string getStatus(int statusCode);
 		void closeServer();
 	};
 } // namespace N
