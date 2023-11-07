@@ -127,12 +127,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="database.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="server.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="database.h" />
+    <ClInclude Include="database_entry.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="utils.h" />

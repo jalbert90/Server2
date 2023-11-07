@@ -45,6 +45,8 @@ namespace N
 		hints.ai_protocol = IPPROTO_TCP;			// Protocol = TCP
 		hints.ai_flags = AI_PASSIVE;				// Socket will bind
 
+		database.initialize("database.csv");
+
 		if (startServer() != 0)
 		{
 			log("`startServer()` failed");
@@ -112,10 +114,10 @@ namespace N
 		if (listen(listenSocket, 4) != 0)
 		{
 			closeServer();
-			exitWithError("Failed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
+			exitWithError("\nFailed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
 		}
 
-		log("Listening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port) + "\n");
+		log("\nListening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port) + "\n");
 
 		while (true)
 		{

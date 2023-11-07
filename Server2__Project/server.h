@@ -1,5 +1,7 @@
 #pragma once
 #define WIN32_LEAN_AND_MEAN
+
+#include "database.h"
 		
 #include <WinSock2.h>							// API
 #include <WS2tcpip.h>							// New Stuff: `getaddrinfo()` for example
@@ -34,6 +36,7 @@ namespace N
 		std::string obtained_addr;												// String version of IP obtained from `getaddrinfo()`.
 		u_short obtained_port;													// Port obtained from `getaddrinfo()` will be stored here.
 		const std::string STATUS200 = "HTTP/1.1 200 OK\r\n";
+		Database database;
 
 		int startServer();
 		int acceptConnection(SOCKET &connectSocket);
