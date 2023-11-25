@@ -56,5 +56,11 @@
     <None Include="game.html">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="databaseSeed.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="database.csv">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

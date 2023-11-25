@@ -1,6 +1,8 @@
 #include "database.h"
 #include "utils.h"
 
+#include <fstream>
+
 namespace N
 {
 	using namespace tools;
@@ -10,17 +12,23 @@ namespace N
 		// Probably do nothing
 	}
 
-	void Database::initialize(const std::string& databaseFileName)
+	int Database::initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName)
 	{
-		log("Initializing Database");
+		log("Initializing database...");
 
-		if (fileExists(databaseFileName))
+		std::ifstream ifs(databaseSeedFileName);
+		std::ofstream ofs(databaseFileName);
+
+		if (!ifs)
 		{
-			log("file exists");
+			log("Error: " + databaseSeedFileName + " stream state has errors.");
+			return -1;
 		}
 		else
 		{
-			log("file does not exists");
+			ofs << ifs.rdbuf();
+			log("Database initialized");
+			return 0;
 		}
 	}
 }

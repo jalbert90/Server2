@@ -8,7 +8,7 @@ namespace N
 	{
 	public:
 		Database();
-		void initialize(const std::string& databaseFileName);
+		int initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName);
 
 	private:
 		//
