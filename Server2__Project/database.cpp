@@ -16,8 +16,29 @@ namespace N
 	{
 		log("Initializing database...");
 
+		if (fileExists(databaseFileName))
+		{
+			if (seed(databaseFileName) == -1)
+			{
+				log("`seed()` failed");
+				return -1;
+			}
+		}
+		else
+		{
+			// seed with seed file
+		}
+
+		// writeDatabase()
+		log("Database initialized.");
+		return 0;
+	}
+
+	int Database::seed(const std::string& databaseSeedFileName)
+	{
+		log("Seeding database with " + databaseSeedFileName + "...");
+
 		std::ifstream ifs(databaseSeedFileName);
-		std::ofstream ofs(databaseFileName);
 
 		if (!ifs)
 		{
@@ -26,9 +47,23 @@ namespace N
 		}
 		else
 		{
-			ofs << ifs.rdbuf();
-			log("Database initialized");
-			return 0;
+			std::string line;
+			std::vector<std::string> tokens;
+			Database_Entry database_Entry;
+
+			while (std::getline(ifs, line))
+			{
+				tokens = tokenize(line, ",");
+
+				database_Entry.lastName = tokens[0];
+				database_Entry.firstName = tokens[1];
+				database_Entry.age = std::stoi(tokens[2]);
+
+				databaseEntries.push_back(database_Entry);
+			}
 		}
+
+		log("Database seeded.");
+		return 0;
 	}
-}
+} // namespace N
