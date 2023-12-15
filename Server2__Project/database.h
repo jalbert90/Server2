@@ -13,6 +13,8 @@ namespace N
 		Database();
 		int initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName, bool override = false);
 
+		// get, add, delete
+
 	private:
 		std::vector<Database_Entry> databaseEntries;
 
