@@ -12,11 +12,11 @@ namespace N
 		// Probably do nothing
 	}
 
-	int Database::initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName, bool overide)
+	int Database::initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName, bool override)
 	{
 		log("Initializing database...");
 
-		if (fileExists(databaseFileName) && overide == false)
+		if (fileExists(databaseFileName) && override == false)
 		{
 			if (seed(databaseFileName) == -1)
 			{
