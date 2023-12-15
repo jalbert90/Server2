@@ -12,11 +12,11 @@ namespace N
 		// Probably do nothing
 	}
 
-	int Database::initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName)
+	int Database::initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName, bool overide)
 	{
 		log("Initializing database...");
 
-		if (fileExists(databaseFileName))
+		if (fileExists(databaseFileName) && overide == false)
 		{
 			if (seed(databaseFileName) == -1)
 			{
@@ -26,10 +26,20 @@ namespace N
 		}
 		else
 		{
-			// seed with seed file
+			if (seed(databaseSeedFileName) == -1)
+			{
+				log("`seed()` failed");
+				return -1;
+			}
+
+			if (writeDatabase() == -1)
+			{
+				log("Failed to write database.");
+				return -1;
+			}
+			log("Database write succeeded.");
 		}
 
-		// writeDatabase()
 		log("Database initialized.");
 		return 0;
 	}
@@ -65,5 +75,28 @@ namespace N
 
 		log("Database seeded.");
 		return 0;
+	}
+
+	int Database::writeDatabase(const std::string& databaseFileName)
+	{
+		std::ofstream ofs(databaseFileName);
+
+		if (!ofs)
+		{
+			log("Error: " + databaseFileName + " stream state has errors");
+			return -1;
+		}
+		else
+		{
+			for (auto it = databaseEntries.begin(); it != databaseEntries.end(); ++it)
+			{
+				ofs << it->lastName << "," << it->firstName << "," << it->age;
+
+				if ((it + 1) != databaseEntries.end())
+				{
+					ofs << "\n";
+				}
+			}
+		}
 	}
 } // namespace N

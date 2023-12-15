@@ -11,11 +11,12 @@ namespace N
 	{
 	public:
 		Database();
-		int initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName);
-		int seed(const std::string& databaseSeedFileName);
-		// writeDatabase()
+		int initialize(const std::string& databaseFileName, const std::string& databaseSeedFileName, bool overide = false);
 
 	private:
 		std::vector<Database_Entry> databaseEntries;
+
+		int seed(const std::string& databaseSeedFileName);
+		int writeDatabase(const std::string& databaseFileName = "database.csv");
 	};
 } // namespace N

@@ -45,7 +45,7 @@ namespace N
 		hints.ai_protocol = IPPROTO_TCP;			// Protocol = TCP
 		hints.ai_flags = AI_PASSIVE;				// Socket will bind
 
-		if (database.initialize("database.csv", "databaseSeed.csv") == -1)
+		if (database.initialize("database.csv", "databaseSeed.csv", true) == -1)
 		{
 			log("`database.initialize()` failed");
 		}
