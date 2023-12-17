@@ -50,6 +50,12 @@ namespace N
 			log("`database.initialize()` failed");
 		}
 
+		Database_Entry temp = database.getEntry(1);
+		log(temp.lastName);
+
+		int entryIndex = database.findEntry("Susskind");
+		log(std::to_string(entryIndex));
+
 		if (startServer() != 0)
 		{
 			log("`startServer()` failed");
@@ -230,6 +236,9 @@ namespace N
 		{
 			// Find result
 			// Send string
+
+			// Send as JSON if found with number found
+			// If not found, send found 0
 			contentType = "text/html";
 			std::string tempMessage = "check";
 			

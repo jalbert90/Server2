@@ -99,4 +99,53 @@ namespace N
 			}
 		}
 	}
+
+	Database_Entry Database::getEntry(int entryIndex)
+	{
+		if (entryIndex < 0 || entryIndex >= databaseEntries.size())
+		{
+			log("Database entry index out of range.");
+		}
+		else
+		{
+			return databaseEntries[entryIndex];
+		}
+	}
+
+	int Database::addEntry(const Database_Entry& databaseEntry)
+	{
+		databaseEntries.push_back(databaseEntry);
+		log("Entry added.");
+		return 0;
+	}
+
+	int Database::deleteEntry(int entryIndex)
+	{
+		if (entryIndex < 0 || entryIndex >= databaseEntries.size())
+		{
+			log("Database entry index out of range.");
+			return -1;
+		}
+		else
+		{
+			databaseEntries.erase(databaseEntries.begin() + entryIndex);
+			log("Entry erased.");
+			return 0;
+		}
+	}
+
+	int Database::findEntry(const std::string& lastName)
+	{
+		std::vector<Database_Entry>::iterator it = std::find_if(databaseEntries.begin(), databaseEntries.end(), [lastName](Database_Entry entry) { return entry.lastName == lastName; });
+
+		if (it == databaseEntries.end())
+		{
+			log("Query \"" + lastName + "\" not found");
+			return -1;
+		}
+		else
+		{
+			return it - databaseEntries.begin();
+		}
+	}
 } // namespace N
