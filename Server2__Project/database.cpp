@@ -65,9 +65,10 @@ namespace N
 			{
 				tokens = tokenize(line, ",");
 
-				database_Entry.lastName = tokens[0];
-				database_Entry.firstName = tokens[1];
-				database_Entry.age = std::stoi(tokens[2]);
+				database_Entry.key = std::stoi(tokens[0]);
+				database_Entry.lastName = tokens[1];
+				database_Entry.firstName = tokens[2];
+				database_Entry.age = std::stoi(tokens[3]);
 
 				databaseEntries.push_back(database_Entry);
 			}
@@ -90,7 +91,7 @@ namespace N
 		{
 			for (auto it = databaseEntries.begin(); it != databaseEntries.end(); ++it)
 			{
-				ofs << it->lastName << "," << it->firstName << "," << it->age;
+				ofs << it->key << "," << it->lastName << "," << it->firstName << "," << it->age;
 
 				if ((it + 1) != databaseEntries.end())
 				{
