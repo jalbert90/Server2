@@ -50,11 +50,19 @@ namespace N
 			log("`database.initialize()` failed");
 		}
 
-		Database_Entry temp = database.getEntry(1);
-		log(temp.lastName);
-
-		int entryIndex = database.findEntry("Susskind");
-		log(std::to_string(entryIndex));
+		std::vector<Database_Entry>* p_entries = database.getEntries(0, 1);
+		if (p_entries == NULL)
+		{
+			log("`getEntries()` failed.");
+		}
+		else
+		{
+			std::vector<Database_Entry>& entries = *p_entries;		// Create reference just because
+			for (auto el : entries)
+			{
+				log(el.lastName);
+			}
+		}
 
 		if (startServer() != 0)
 		{

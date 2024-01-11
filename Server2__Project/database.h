@@ -23,6 +23,9 @@ namespace N
 		* Once done ^^ big task, switch gears and make banger website.
 		*/
 		Database_Entry getEntry(int entryIndex);
+		//std::vector<Database_Entry> getEntries(std::vector<int> entryIndexes);
+		std::vector<Database_Entry>* getEntries(int startIndex, int endIndex);
+		//std::vector<Database_Entry> getEntriesByKey(std::vector<int> entryKeys);
 		int addEntry(const Database_Entry& databaseEntry);
 		int deleteEntry(int entryIndex);
 		int findEntry(const std::string& lastName);

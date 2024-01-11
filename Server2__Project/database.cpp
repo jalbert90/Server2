@@ -40,7 +40,7 @@ namespace N
 			log("Database write succeeded.");
 		}
 
-		log("Database initialized.");
+		log("Database initialized.\n");
 		return 0;
 	}
 
@@ -111,6 +111,26 @@ namespace N
 		{
 			return databaseEntries[entryIndex];
 		}
+	}
+
+	std::vector<Database_Entry>* Database::getEntries(int startIndex, int endIndex)
+	{
+		int numOfEntries = databaseEntries.size();
+
+		if (startIndex < 0 || startIndex > numOfEntries - 1 || endIndex < startIndex || endIndex > numOfEntries - 1)
+		{
+			log("Index out of bounds.");
+			return NULL;
+		}
+
+		std::vector<Database_Entry>* p_entries = new std::vector<Database_Entry>();		// pointer to vector needs vector to point to
+
+		for (int i = startIndex; i <= endIndex; i++)
+		{
+			p_entries->push_back(databaseEntries[i]);		// or (*p_entries).push_back()
+		}
+
+		return p_entries;
 	}
 
 	int Database::addEntry(const Database_Entry& databaseEntry)
