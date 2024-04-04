@@ -30,6 +30,9 @@ namespace N
 		int deleteEntry(int entryIndex);
 		int findEntry(const std::string& lastName);
 
+		void makeJSON(const std::vector<Database_Entry>& databaseEntries);
+		//std::vector<Database_Entry> databaseEntries;
+
 	private:
 		std::vector<Database_Entry> databaseEntries;
 

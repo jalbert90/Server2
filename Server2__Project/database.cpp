@@ -169,4 +169,42 @@ namespace N
 			return it - databaseEntries.begin();
 		}
 	}
+
+	void Database::makeJSON(const std::vector<Database_Entry>& databaseEntries)
+	{
+		std::ofstream ofs("toSend.json");
+
+		if (!ofs.good())
+		{
+			log("Output file stream not good in `makeJSON()`.");
+			return;
+		}
+
+		std::vector<std::string> keys = { "Primary Key", "Last Name", "First Name", "Age" };
+
+		ofs << "[\n";
+
+		int length = databaseEntries.size();
+		int c = 0;
+
+		for (auto& x : databaseEntries)
+		{
+			ofs << "\t{\n";
+
+			ofs << "\t\t\"" << keys[0] << "\": " << x.key << ",\n";
+			ofs << "\t\t\"" << keys[1] << "\": \"" << x.lastName << "\",\n";
+			ofs << "\t\t\"" << keys[2] << "\": \"" << x.firstName << "\",\n";
+			ofs << "\t\t\"" << keys[3] << "\": " << x.age << "\n";
+
+			ofs << "\t}";
+
+			c++;
+
+			if (c < length)
+			{
+				ofs << ",\n";
+			}
+		}
+		ofs << "\n]";
+	}
 } // namespace N

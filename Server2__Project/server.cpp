@@ -64,6 +64,15 @@ namespace N
 			}
 		}
 
+		for (auto el : *p_entries)
+		{
+			log(el.firstName);
+		}
+
+		std::vector<Database_Entry> entries = *p_entries;
+
+		database.makeJSON(entries);
+
 		if (startServer() != 0)
 		{
 			log("`startServer()` failed");
