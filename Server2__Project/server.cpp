@@ -30,10 +30,11 @@ namespace N
 	// Content Types
 	/* type/subtype */
 	const std::map<std::string, std::string> Server::contentTypes = {
-	{"html", "text/html"},
-	{"js", "text/javascript"},
-	{"jpg", "image/jpeg"},
-	{"ico", "image/x-icon"}
+		{"html", "text/html"},
+		{"js", "text/javascript"},
+		{"jpg", "image/jpeg"},
+		{"ico", "image/x-icon"},
+		{"json", "application/json"}
 	};
 
 	Server::Server(std::string addr, std::string port) : m_addr(addr), m_port(port)
@@ -256,14 +257,26 @@ namespace N
 
 			// Send as JSON if found with number found
 			// If not found, send found 0
-			contentType = "text/html";
-			std::string tempMessage = "check";
 			
-			if (sendString(connectSocket, getStatus(200) + getHeader(tempMessage.length(), contentType) + tempMessage) == -1)
+			// Get DB table's records as a vector of records
+			// Build json
+			// Send json
+
+			if (sendFileAsBinary(connectSocket, "application/json", "toSend.json") != 0)
 			{
-				log("`sendString()` failed while sending search result");
+				log("`sendFileAsBinary()` in server.cpp failed trying to send json for GET query.");
 				return -1;
 			}
+
+
+			//contentType = "text/html";
+			//std::string tempMessage = "check";
+			//
+			//if (sendString(connectSocket, getStatus(200) + getHeader(tempMessage.length(), contentType) + tempMessage) == -1)
+			//{
+			//	log("`sendString()` failed while sending search result");
+			//	return -1;
+			//}
 		}
 		else
 		{
@@ -328,6 +341,7 @@ namespace N
 					log("Failed to size " + fileName);
 					if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 					{
+						// Log this?
 						closesocket(connectSocket);
 					}
 
@@ -335,6 +349,7 @@ namespace N
 				}
 				else if (sendString(connectSocket, STATUS200 + "Content-Length: " + std::to_string(fileLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
+					// Log this?
 					closesocket(connectSocket);
 				}
 				else
