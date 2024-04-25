@@ -9,7 +9,7 @@ function btnPress() {
     num.innerHTML = Math.floor(Math.random() * 11)
 }
 
-function onSubmit(event) {
+/*function onSubmit(event) {
     event.preventDefault();
     let query = document.querySelector('[name="query"]').value;
 
@@ -34,6 +34,25 @@ function onSubmit(event) {
         console.error(error);
         alert(error);
     });
+}*/
+
+// .then(myResolve, myReject) passes myResolve and myReject to executor function of promise (thus calling the executor function). The executor function executes, using the passed
+// callbacks in its body.
+// new Promise(executor);
+// function executor(myRes, myRej) { if this do myRes; else do myRej; }
+
+async function getDatabaseEntries(query) {
+    // Can add try catch
+    const response = await fetch("/?query=" + query);
+    const entries = await response.json();
+}
+
+function onSubmit(event) {
+    // prevent default
+    // get query
+    // get json
+    // parse
+    // display
 }
 
 btn.addEventListener("click", btnPress);
