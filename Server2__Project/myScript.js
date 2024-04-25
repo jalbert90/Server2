@@ -44,13 +44,23 @@ function btnPress() {
 async function getDatabaseEntries(query) {
     // Can add try catch
     const response = await fetch("/?query=" + query);
-    const entries = await response.json();
+    const entries_string = await response.text();
+    console.log(entries_string);
+    const entries_obj = JSON.parse(entries_string);
+
+    for (const [key, value] of Object.entries(entries_obj)) {
+        console.log(`${key}: ${value}`);
+    }
+
+    // json array of objects!! don't forget
+
+    console.log(Object.keys(entries_obj));
 }
 
 function onSubmit(event) {
-    // prevent default
-    // get query
-    // get json
+    event.preventDefault();
+    const query = document.querySelector('[name="query"]').value;
+    getDatabaseEntries(query);
     // parse
     // display
 }
