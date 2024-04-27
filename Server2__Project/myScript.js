@@ -2,7 +2,7 @@ let btn = document.getElementById("btn");
 let num = document.getElementById("num");
 let form = document.getElementById("search-form");
 let input = document.getElementById("search-form").elements["query"];
-let submit = document.getElementById("search-form").elements["send"];
+let submit = document.getElementById("search-form").elements["newSend"];
 let results = document.getElementById("search-results");
 
 function btnPress() {
@@ -44,17 +44,16 @@ function btnPress() {
 async function getDatabaseEntries(query) {
     // Can add try catch
     const response = await fetch("/?query=" + query);
-    const entries_string = await response.text();
-    console.log(entries_string);
-    const entries_obj = JSON.parse(entries_string);
+    const records = await response.json();
 
-    for (const [key, value] of Object.entries(entries_obj)) {
-        console.log(`${key}: ${value}`);
+    for (let i = 0; i < records.length; i++) {
+        for (const [key, value] of Object.entries(records[0])) {
+            console.log(`${key}: ${value}`);
+        }
+        console.log('\n');
     }
 
     // json array of objects!! don't forget
-
-    console.log(Object.keys(entries_obj));
 }
 
 function onSubmit(event) {

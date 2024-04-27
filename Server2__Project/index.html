@@ -3,23 +3,34 @@
 <HEAD>
 <META NAME="GENERATOR" Content="Microsoft Visual Studio">
 <TITLE>title</TITLE>
+<style>
+    #banner {
+        background-color: chocolate;
+        width: 100%;
+        height: 100px;
+    }
+</style>
 </HEAD>
 <BODY style="background-color:dimgrey">
 
+    <div id="banner">
+    </div>
+
+    <!--<img src="sunrise.jpg" style="width:100%;height:128px;" />-->    
+    
     <h1>hello browser</h1>
     <h1>i'm from file via server :)</h1>
     <p>Press button to get random number</p>
     <button id="btn">Press</button>
     <div id="num"></div> <br />
-    <form id="search-form" method="get">
+    <form id="search-form" method="get" autocomplete="off">
         <label form="search_form">Search: <br /> <input type="text" name="query" /> <br /> </label> <br />
-        <input type="submit" name="send" value="Send" /> <br />
+        <input type="submit" name="newSend" value="Send" /> <br />
     </form>
     <p id="search-results"></p> <br />
     <a href="game.html">game</a> <br />
-    <img src="sunrise.jpg" />
 
+    
     <script src="myScript.js"></script>
-
 </BODY>
 </HTML>
