@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <iostream>
+#include <fstream>
 
 namespace tools
 {

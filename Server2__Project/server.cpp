@@ -30,10 +30,11 @@ namespace N
 	// Content Types
 	/* type/subtype */
 	const std::map<std::string, std::string> Server::contentTypes = {
-	{"html", "text/html"},
-	{"js", "text/javascript"},
-	{"jpg", "image/jpeg"},
-	{"ico", "image/x-icon"}
+		{"html", "text/html"},
+		{"js", "text/javascript"},
+		{"jpg", "image/jpeg"},
+		{"ico", "image/x-icon"},
+		{"json", "application/json"}
 	};
 
 	Server::Server(std::string addr, std::string port) : m_addr(addr), m_port(port)
@@ -44,6 +45,34 @@ namespace N
 		hints.ai_socktype = SOCK_STREAM;			// Socket type = reliable, two-way, connection based byte stream, OOB data transmission mechanism.
 		hints.ai_protocol = IPPROTO_TCP;			// Protocol = TCP
 		hints.ai_flags = AI_PASSIVE;				// Socket will bind
+
+		if (database.initialize("database.csv", "databaseSeed.csv", true) == -1)
+		{
+			log("`database.initialize()` failed");
+		}
+
+		std::vector<Database_Entry>* p_entries = database.getEntries(0, 1);
+		if (p_entries == NULL)
+		{
+			log("`getEntries()` failed.");
+		}
+		else
+		{
+			std::vector<Database_Entry>& entries = *p_entries;		// Create reference just because
+			for (auto el : entries)
+			{
+				log(el.lastName);
+			}
+		}
+
+		for (auto el : *p_entries)
+		{
+			log(el.firstName);
+		}
+
+		std::vector<Database_Entry> entries = *p_entries;
+
+		database.makeJSON(entries);
 
 		if (startServer() != 0)
 		{
@@ -112,10 +141,10 @@ namespace N
 		if (listen(listenSocket, 4) != 0)
 		{
 			closeServer();
-			exitWithError("Failed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
+			exitWithError("\nFailed to listen on " + obtained_addr + ":" + std::to_string(obtained_port), WSAGetLastError());
 		}
 
-		log("Listening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port) + "\n");
+		log("\nListening on...\nAddress: " + obtained_addr + "\nPort: " + std::to_string(obtained_port) + "\n");
 
 		while (true)
 		{
@@ -225,14 +254,29 @@ namespace N
 		{
 			// Find result
 			// Send string
-			contentType = "text/html";
-			std::string tempMessage = "check";
+
+			// Send as JSON if found with number found
+			// If not found, send found 0
 			
-			if (sendString(connectSocket, getStatus(200) + getHeader(tempMessage.length(), contentType) + tempMessage) == -1)
+			// Get DB table's records as a vector of records
+			// Build json
+			// Send json
+
+			if (sendFileAsBinary(connectSocket, "application/json", "toSend.json") != 0)
 			{
-				log("`sendString()` failed while sending search result");
+				log("`sendFileAsBinary()` in server.cpp failed trying to send json for GET query.");
 				return -1;
 			}
+
+
+			//contentType = "text/html";
+			//std::string tempMessage = "check";
+			//
+			//if (sendString(connectSocket, getStatus(200) + getHeader(tempMessage.length(), contentType) + tempMessage) == -1)
+			//{
+			//	log("`sendString()` failed while sending search result");
+			//	return -1;
+			//}
 		}
 		else
 		{
@@ -297,6 +341,7 @@ namespace N
 					log("Failed to size " + fileName);
 					if (sendString(connectSocket, "HTTP/1.1 500 Error\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n") == -1)
 					{
+						// Log this?
 						closesocket(connectSocket);
 					}
 
@@ -304,6 +349,7 @@ namespace N
 				}
 				else if (sendString(connectSocket, STATUS200 + "Content-Length: " + std::to_string(fileLength) + "\r\nContent-Type: " + contentType + "\r\nConnection: keep-alive\r\n\r\n") == -1)
 				{
+					// Log this?
 					closesocket(connectSocket);
 				}
 				else

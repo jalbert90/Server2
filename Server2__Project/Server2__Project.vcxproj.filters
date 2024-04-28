@@ -27,6 +27,9 @@
     <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="server.h">
@@ -38,6 +41,12 @@
     <ClInclude Include="parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="database_entry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="index.html">
@@ -46,6 +55,15 @@
     <None Include="myScript.js" />
     <None Include="game.html">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="databaseSeed.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="database.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="toSend.json">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
 </Project>

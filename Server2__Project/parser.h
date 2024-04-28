@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 namespace tools
 {
@@ -24,6 +23,6 @@ namespace tools
 			fileName = "",
 			fileExt = "";
 
-		std::vector<std::string> tokenize(const std::string& input, const std::string& delim = "\n");
+		//std::vector<std::string> tokenize(const std::string& input, const std::string& delim = "\n");
 	};
 } // namespace tools
