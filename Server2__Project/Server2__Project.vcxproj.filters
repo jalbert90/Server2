@@ -65,5 +65,6 @@
     <None Include="toSend.json">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="style.css" />
   </ItemGroup>
 </Project>

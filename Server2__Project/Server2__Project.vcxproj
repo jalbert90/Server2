@@ -146,6 +146,7 @@
     <None Include="game.html" />
     <None Include="index.html" />
     <None Include="myScript.js" />
+    <None Include="style.css" />
     <None Include="toSend.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

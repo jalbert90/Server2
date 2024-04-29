@@ -34,7 +34,8 @@ namespace N
 		{"js", "text/javascript"},
 		{"jpg", "image/jpeg"},
 		{"ico", "image/x-icon"},
-		{"json", "application/json"}
+		{"json", "application/json"},
+		{"css", "text/css"}
 	};
 
 	Server::Server(std::string addr, std::string port) : m_addr(addr), m_port(port)
