@@ -142,10 +142,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="database.csv" />
+    <None Include="database.html" />
     <None Include="databaseSeed.csv" />
     <None Include="game.html" />
     <None Include="index.html" />
     <None Include="myScript.js" />
+    <None Include="site_template.html" />
     <None Include="style.css" />
     <None Include="toSend.json" />
   </ItemGroup>
