@@ -66,5 +66,11 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="style.css" />
+    <None Include="site_template.html">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="database.html">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
