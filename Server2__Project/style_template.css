@@ -1,0 +1,48 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: dimgrey;
+}
+
+#banner {
+    background-color: chocolate;
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 10px;
+    height: 100px;
+    padding: 5px;
+}
+
+#banner_contents {
+    /*    border: 1px solid black;*/
+    height: 100%;
+    width: 100%;
+}
+
+a:link, a:visited {
+    background-color: lightgrey;
+    border: 2px solid black;
+    color: midnightblue;
+    padding: 10px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+a:hover, a:active {
+    background-color: crimson;
+    color: white;
+}
+
+#bulk {
+    background-color: darkgray;
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 125px;
+    bottom: 10px;
+    padding: 5px;
+}
