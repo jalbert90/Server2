@@ -52,7 +52,6 @@
     <None Include="index.html">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="myScript.js" />
     <None Include="game.html">
       <Filter>Source Files</Filter>
     </None>
@@ -65,12 +64,23 @@
     <None Include="toSend.json">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="style.css" />
     <None Include="site_template.html">
       <Filter>Source Files</Filter>
     </None>
     <None Include="database.html">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="myScript.js">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="style_index.css">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="style_game.css">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="game_script.js" />
+    <None Include="style_database.css" />
+    <None Include="style_template.css" />
   </ItemGroup>
 </Project>

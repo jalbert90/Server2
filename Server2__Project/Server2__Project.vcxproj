@@ -145,10 +145,14 @@
     <None Include="database.html" />
     <None Include="databaseSeed.csv" />
     <None Include="game.html" />
+    <None Include="game_script.js" />
     <None Include="index.html" />
     <None Include="myScript.js" />
     <None Include="site_template.html" />
-    <None Include="style.css" />
+    <None Include="style_database.css" />
+    <None Include="style_index.css" />
+    <None Include="style_game.css" />
+    <None Include="style_template.css" />
     <None Include="toSend.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
