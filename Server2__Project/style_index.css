@@ -63,3 +63,11 @@ a:hover, a:active {
     width: 50%;
     padding: 10px;
 }
+
+#random_number_game {
+    border: 2px solid black;
+    padding: 25px;
+    width: 25%;
+    height: 50%;
+    margin: auto;
+}
