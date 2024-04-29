@@ -144,6 +144,7 @@
     <None Include="database.csv" />
     <None Include="database.html" />
     <None Include="databaseSeed.csv" />
+    <None Include="database_script.js" />
     <None Include="game.html" />
     <None Include="game_script.js" />
     <None Include="index.html" />

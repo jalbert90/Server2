@@ -82,5 +82,6 @@
     <None Include="game_script.js" />
     <None Include="style_database.css" />
     <None Include="style_template.css" />
+    <None Include="database_script.js" />
   </ItemGroup>
 </Project>
