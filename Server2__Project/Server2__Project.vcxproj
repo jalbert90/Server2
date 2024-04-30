@@ -150,7 +150,7 @@
     <None Include="index.html" />
     <None Include="myScript.js" />
     <None Include="site_template.html" />
-    <None Include="style_database.css" />
+    <None Include="database_style.css" />
     <None Include="style_index.css" />
     <None Include="style_game.css" />
     <None Include="style_template.css" />

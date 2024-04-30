@@ -6,11 +6,25 @@ function populate_btn_click(e) {
 }
 
 async function display_records() {
-    const endpoint = "/?query=";
+    const endpoint = "/?=";
     const query = "all";
     const response_obj = await fetch(endpoint + query);
     const records = await response_obj.json();
-    db_display.innerHTML = JSON.stringify(records[0]);
+    const keys = Object.keys(records[0]);
+    let keys_para = document.createElement("p");
+    keys_para.innerHTML = "";
+    db_display.appendChild(keys_para);
+    for (const key of keys) {
+        keys_para.innerHTML += key + "&emsp;";
+    }
+    for (record of records) {
+        let record_para = document.createElement("p");
+        record_para.innerHTML = "";
+        for (key in record) {
+            record_para.innerHTML += record[key] + "&emsp;" + "&emsp;" + "&emsp;";
+        }
+        db_display.appendChild(record_para);
+    }
 }
 
 populate_btn.addEventListener("click", populate_btn_click);
