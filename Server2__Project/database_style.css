@@ -46,3 +46,11 @@ a:hover, a:active {
     bottom: 10px;
     padding: 5px;
 }
+
+#database_tools {
+    border: 2px solid black;
+}
+
+#database_display {
+    border: 2px solid black;
+}

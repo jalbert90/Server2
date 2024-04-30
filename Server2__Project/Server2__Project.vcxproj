@@ -144,12 +144,13 @@
     <None Include="database.csv" />
     <None Include="database.html" />
     <None Include="databaseSeed.csv" />
+    <None Include="database_script.js" />
     <None Include="game.html" />
     <None Include="game_script.js" />
     <None Include="index.html" />
     <None Include="myScript.js" />
     <None Include="site_template.html" />
-    <None Include="style_database.css" />
+    <None Include="database_style.css" />
     <None Include="style_index.css" />
     <None Include="style_game.css" />
     <None Include="style_template.css" />
