@@ -148,12 +148,15 @@
     <None Include="game.html" />
     <None Include="game_script.js" />
     <None Include="index.html" />
+    <None Include="maze.html" />
+    <None Include="maze_script.js" />
+    <None Include="maze_style.css" />
     <None Include="myScript.js" />
     <None Include="site_template.html" />
     <None Include="database_style.css" />
-    <None Include="style_index.css" />
-    <None Include="style_game.css" />
-    <None Include="style_template.css" />
+    <None Include="index_style.css" />
+    <None Include="game_style.css" />
+    <None Include="site_template_style.css" />
     <None Include="toSend.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

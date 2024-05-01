@@ -73,15 +73,20 @@
     <None Include="myScript.js">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="style_index.css">
+    <None Include="index_style.css">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="style_game.css">
+    <None Include="game_style.css">
       <Filter>Source Files</Filter>
     </None>
     <None Include="game_script.js" />
     <None Include="database_style.css" />
-    <None Include="style_template.css" />
+    <None Include="site_template_style.css" />
     <None Include="database_script.js" />
+    <None Include="maze.html">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="maze_style.css" />
+    <None Include="maze_script.js" />
   </ItemGroup>
 </Project>
