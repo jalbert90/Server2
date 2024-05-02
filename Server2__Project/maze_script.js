@@ -1,11 +1,7 @@
 let generate_btn = document.getElementById("generate");
-/*let maze_container = document.getElementsByClassName("maze_container")[0];*/
 
-// Maze has `maze_dim` * `maze_dim` cells.
-const MAZE_DIM = 10;
-const COL_WIDTH = "50px ";
-/*maze_container.style["grid-template-columns"] = col_width.repeat(maze_dim);
-maze_cells = [];*/
+const MAZE_DIM = 10;                // Number of columns and rows
+const COL_WIDTH = "50px ";          // Width of each column
 
 function delay(ms) {
     // To-do: Learn why we can await a `Promise` object without providing an argument for `res` using `.then()`...
@@ -92,26 +88,46 @@ class Maze {
  * Implement path finding or something ??
  */
 
-/*function create_maze_cell(row, col) {
-    const maze_cell = document.createElement("div");
-    maze_cell.className = "maze_cell";
-    maze_cell.innerHTML = 10 * row + (col + 1);
-    maze_container.appendChild(maze_cell);
-    return maze_cell;
-}*/
-
-async function generate_btn_click() {
-/*    for (let row = 0; row < maze_dim; row++) {
-        let maze_cell_row = []
-        for (let col = 0; col < maze_dim; col++) {
-            maze_cell = create_maze_cell(row, col);
-            maze_cell_row.push(maze_cell);
-            await delay(10);
-        }
-        maze_cells.push(maze_cell_row);
-    }*/
-
+function generate_btn_click() {
     const maze = new Maze(MAZE_DIM, COL_WIDTH);
+}
+
+let click_count = 0;
+let stop_flag = false;
+
+function* test() {
+    console.log("test1");
+    yield;
+    console.log("test2");
+    yield;
+    console.log("test3");
+}
+
+async function start_coroutine(f) {
+    var func = f();
+    var run_counter = 0;
+    while (stop_flag == false && run_counter < 20) {
+        func.next();
+        run_counter += 1;
+        await delay(10);
+        console.log(run_counter);
+    }
+}
+
+function generate_btn_click_p() {
+    click_count += 1;
+
+    // new maze
+
+    if (click_count == 1) {
+        // start_coroutine(maze.generate)
+        start_coroutine(test);
+    }
+    else {
+        stop_flag = true;
+        // destroy `maze.maze_container`'s children
+        // start_coroutine(maze.generate)
+    }
 }
 
 generate_btn.addEventListener("click", generate_btn_click);
