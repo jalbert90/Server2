@@ -19,21 +19,38 @@ class Maze_Cell {
         this.row = row;
         this.col = col;
         this.num = 10 * row + (col + 1);
+
+        // Cell
         this.cell = document.createElement("div");
         this.cell.className = "maze_cell";
-        this.cell.innerHTML = this.num;
-/*        this.n_wall = document.createElement("div");
+
+        // North wall
+        this.n_wall = document.createElement("div");
         this.n_wall.className = "north_wall";
         this.cell.appendChild(this.n_wall);
-        this.s_wall = document.createElement("div");
-        this.s_wall.className = "south_wall";
-        this.cell.appendChild(this.s_wall);
+
+        // West wall
         this.w_wall = document.createElement("div");
         this.w_wall.className = "west_wall";
         this.cell.appendChild(this.w_wall);
+
+        // Cell number
+        this.cell_number = document.createElement("div");
+        this.cell_number.className = "center_div";
+        this.cell_number.innerHTML = this.num;
+        this.cell.appendChild(this.cell_number);
+
+        // East wall
         this.e_wall = document.createElement("div");
         this.e_wall.className = "east_wall";
-        this.cell.appendChild(this.e_wall);*/
+        this.cell.appendChild(this.e_wall);
+
+        // South wall
+        this.s_wall = document.createElement("div");
+        this.s_wall.className = "south_wall";
+        this.cell.appendChild(this.s_wall);
+        
+        
     }
 }
 
