@@ -59,7 +59,7 @@ a:hover, a:active {
 }
 
 .maze_cell {
-/*    border: 1px solid black;*/
+    border: 1px solid black;
     text-align: center;
     padding: 12px;
 }
