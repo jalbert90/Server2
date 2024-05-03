@@ -78,11 +78,47 @@ class Maze {
     }
 }
 
+class Maze_p {
+    #maze_cells = [];
+    constructor(maze_dim, col_width) {
+        this.maze_dim = maze_dim;
+        this.col_width = col_width;
+        this.maze_container = document.getElementsByClassName("maze_container")[0];
+        this.maze_container.style["grid-template-columns"] = this.col_width.repeat(this.maze_dim);
+    }
+
+    async maze_factory() {
+        await this.construct_skeleton();
+    }
+
+    *generate() {
+        for (let row = 0; row < this.maze_dim; row++) {
+            let maze_cell_row = [];
+            for (let col = 0; col < this.maze_dim; col++) {
+                let maze_cell = new Maze_Cell(row, col);
+                this.maze_container.appendChild(maze_cell.cell);
+                maze_cell_row.push(maze_cell);
+                yield;
+            }
+            this.#maze_cells.push(maze_cell_row);
+        }
+        click_count = 0;
+    }
+
+    destroy() {
+        this.maze_container.innerHTML = "";
+        this.#maze_cells = [];
+    }
+}
+
 /**
  * Next steps:
  * 
- * Test classes.
- * Create game manager.
+ * Clean up game manager logic:
+ * 
+ * 1. Try to get rid of global variables.
+ * 2. Ideally, we want a restartGame and beginGame, where restartGame stops, destroys, and calls beginGame.
+ * 
  * Add generate maze: 1. start at random point; 2. take step in random direction (random direction function generates 0, 1, 2, 3 and returns an int vector)
  * Will need to have a visited list for backtracking.
  * Implement path finding or something ??
@@ -93,7 +129,7 @@ function generate_btn_click() {
 }
 
 let click_count = 0;
-let stop_flag = false;
+let restart_flag = false;
 
 function* test() {
     console.log("test1");
@@ -103,31 +139,33 @@ function* test() {
     console.log("test3");
 }
 
-async function start_coroutine(f) {
-    var func = f();
+async function start_coroutine(maze) {
+    var generate = maze.generate();
     var run_counter = 0;
-    while (stop_flag == false && run_counter < 20) {
-        func.next();
+    while (restart_flag == false && run_counter < MAZE_DIM * MAZE_DIM + 1) {
+        generate.next();
         run_counter += 1;
         await delay(10);
-        console.log(run_counter);
+    }
+    if (restart_flag == true) {
+        restart_flag = false;
+        maze.destroy();
+        start_coroutine(maze);
     }
 }
 
 function generate_btn_click_p() {
     click_count += 1;
 
-    // new maze
+    const maze = new Maze_p(MAZE_DIM, COL_WIDTH);
 
     if (click_count == 1) {
-        // start_coroutine(maze.generate)
-        start_coroutine(test);
+        maze.destroy();
+        start_coroutine(maze);
     }
     else {
-        stop_flag = true;
-        // destroy `maze.maze_container`'s children (maybe do this async...?) (in start_coroutine()?)
-        // start_coroutine(maze.generate)
+        restart_flag = true;
     }
 }
 
-generate_btn.addEventListener("click", generate_btn_click);
+generate_btn.addEventListener("click", generate_btn_click_p);
