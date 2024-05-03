@@ -125,7 +125,7 @@ function generate_btn_click_p() {
     }
     else {
         stop_flag = true;
-        // destroy `maze.maze_container`'s children
+        // destroy `maze.maze_container`'s children (maybe do this async...?) (in start_coroutine()?)
         // start_coroutine(maze.generate)
     }
 }
