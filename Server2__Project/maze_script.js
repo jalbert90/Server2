@@ -2,6 +2,10 @@ let generate_btn = document.getElementById("generate");
 
 const MAZE_DIM = 10;                // Number of columns and rows
 const COL_WIDTH = "50px ";          // Width of each column
+let click_count = 0;
+let ms_delay = 10;
+let maze = null;
+let coroutines = [];
 
 function delay(ms) {
     // To-do: Learn why we can await a `Promise` object without providing an argument for `res` using `.then()`...
@@ -56,34 +60,6 @@ class Maze {
         this.maze_dim = maze_dim;
         this.col_width = col_width;
         this.maze_container = document.getElementsByClassName("maze_container")[0];
-        this.maze_factory();
-    }
-
-    async maze_factory() {
-        await this.construct_skeleton();
-    }
-
-    async construct_skeleton() {
-        this.maze_container.style["grid-template-columns"] = this.col_width.repeat(this.maze_dim);
-        for (let row = 0; row < this.maze_dim; row++) {
-            let maze_cell_row = [];
-            for (let col = 0; col < this.maze_dim; col++) {
-                let maze_cell = new Maze_Cell(row, col);
-                this.maze_container.appendChild(maze_cell.cell);
-                maze_cell_row.push(maze_cell);
-                await delay(10);
-            }
-            this.#maze_cells.push(maze_cell_row);
-        }
-    }
-}
-
-class Maze_p {
-    #maze_cells = [];
-    constructor(maze_dim, col_width) {
-        this.maze_dim = maze_dim;
-        this.col_width = col_width;
-        this.maze_container = document.getElementsByClassName("maze_container")[0];
         this.maze_container.style["grid-template-columns"] = this.col_width.repeat(this.maze_dim);
     }
 
@@ -95,6 +71,7 @@ class Maze_p {
         for (let row = 0; row < this.maze_dim; row++) {
             let maze_cell_row = [];
             for (let col = 0; col < this.maze_dim; col++) {
+                // create_cell();
                 let maze_cell = new Maze_Cell(row, col);
                 this.maze_container.appendChild(maze_cell.cell);
                 maze_cell_row.push(maze_cell);
@@ -102,7 +79,7 @@ class Maze_p {
             }
             this.#maze_cells.push(maze_cell_row);
         }
-        click_count = 0;
+        yield;
     }
 
     destroy() {
@@ -124,48 +101,49 @@ class Maze_p {
  * Implement path finding or something ??
  */
 
+function Coroutine(func) {
+    this.run = true;
+    coroutines.push(this);
+    async function start_coroutine(func) {
+        const f = func.bind(maze)();
+        while (this.run) {
+            if (f.next().done == true) {
+                break;
+            }
+            await delay(ms_delay);
+        }
+        const index = coroutines.indexOf(this);
+        coroutines.splice(index, 1);
+    }
+    const start = start_coroutine.bind(this);
+    start(func);    
+}
+
+function stop_all_coroutines() {
+    for (coroutine of coroutines) {
+        coroutine.run = false;
+    }
+}
+
+function begin_game() {
+    maze = new Maze(MAZE_DIM, COL_WIDTH);
+    const coroutine = new Coroutine(maze.generate);
+}
+
+function restart_game() {
+    stop_all_coroutines();
+    maze.destroy();
+    begin_game();
+}
+
 function generate_btn_click() {
-    const maze = new Maze(MAZE_DIM, COL_WIDTH);
-}
-
-let click_count = 0;
-let restart_flag = false;
-
-function* test() {
-    console.log("test1");
-    yield;
-    console.log("test2");
-    yield;
-    console.log("test3");
-}
-
-async function start_coroutine(maze) {
-    var generate = maze.generate();
-    var run_counter = 0;
-    while (restart_flag == false && run_counter < MAZE_DIM * MAZE_DIM + 1) {
-        generate.next();
-        run_counter += 1;
-        await delay(10);
-    }
-    if (restart_flag == true) {
-        restart_flag = false;
-        maze.destroy();
-        start_coroutine(maze);
-    }
-}
-
-function generate_btn_click_p() {
-    click_count += 1;
-
-    const maze = new Maze_p(MAZE_DIM, COL_WIDTH);
-
+    click_count++;
     if (click_count == 1) {
-        maze.destroy();
-        start_coroutine(maze);
+        begin_game();
     }
     else {
-        restart_flag = true;
+        restart_game();
     }
 }
 
-generate_btn.addEventListener("click", generate_btn_click_p);
+generate_btn.addEventListener("click", generate_btn_click);
