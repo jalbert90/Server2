@@ -11,7 +11,7 @@ function delay(ms) {
     // To-do: Learn why we can await a `Promise` object without providing an argument for `res` using `.then()`...
     return new Promise(function (res) {
         setTimeout(res, ms);
-    })
+    });
 }
 
 class Maze_Cell {
