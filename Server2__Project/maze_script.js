@@ -3,7 +3,7 @@ let generate_btn = document.getElementById("generate");
 const MAZE_DIM = 10;                // Number of columns and rows
 const COL_WIDTH = "50px ";          // Width of each column
 let click_count = 0;
-let ms_delay = 10;
+let MS_DELAY = 20;
 let maze = null;
 let coroutines = [];
 
@@ -23,27 +23,48 @@ function Int_vector(x, y) {
         const v_new = new Int_vector(x_new, y_new);
         return v_new;
     };
+    this.subtract = function (v) {
+        const x_new = this.x - v.x;
+        const y_new = this.y - v.y;
+        const v_new = new Int_vector(x_new, y_new);
+        return v_new;
+    }
+    this.multiply = function (scalar) {
+        const x_new = scalar * this.x;
+        const y_new = scalar * this.y;
+        const v_new = new Int_vector(x_new, y_new);
+        return v_new;
+    }
 }
 
 // Turn matrix into Cartesian coordinate system with origin at the M_{00}
 // +x-axis points South
 // +y-axis points East
 const directions = {
-    North: new Int_vector(-1, 0),
-    South: new Int_vector(1, 0),
-    East: new Int_vector(0, 1),
-    West: new Int_vector(0, -1)
+    north: new Int_vector(-1, 0),
+    south: new Int_vector(1, 0),
+    east: new Int_vector(0, 1),
+    west: new Int_vector(0, -1)
 };
+
+function get_direction(direction_vector) {
+    for (const [dir, dir_vec] of Object.entries(directions)) {
+        if (direction_vector.x == dir_vec.x && direction_vector.y == dir_vec.y) {
+            return dir;
+        }
+    }
+    return null;
+}
 
 class Maze_Cell {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.position = new Int_vector(x, y);
+        this.coordinates = new Int_vector(x, y);
         this.visited = false;
         this.num = 10 * x + (y + 1);
 
-        // Create cell:
+        // Create cell (cell = floor):
         this.cell = document.createElement("div");
         const cell = this.cell;
         this.cell.className = "maze_cell";
@@ -110,26 +131,62 @@ class Maze {
     }
 
     *generate_maze() {
+        // Remove walls:
         for (let row = 0; row < this.maze_dim; row++) {
             for (let col = 0; col < this.maze_dim; col++) {
                 let current_cell = this.#maze_cells[row][col];
                 current_cell.cell_number.innerHTML = "";
                 for (const [wall_name, wall] of Object.entries(current_cell.walls)) {
-                    wall.style.display = "none";
+                    wall.style.display = "none";                    
                 }
+                yield;
             }
         }
 
+        /* Begin maze generation logic: */
+
+        // Start at random cell:
         const rand_coordinates = this.get_random_coordinates();
-        const active_cell = this.get_cell(rand_coordinates);
-        active_cell.visited = true;
-        this.#visited[active_cell.position.x][active_cell.position.y] = true;
+        let active_cell = this.get_cell(rand_coordinates);
+        active_cell.visited = true;        
+        this.#visited[active_cell.coordinates.x][active_cell.coordinates.y] = true;
         active_cell.cell.style.background = "red";
         this.#active_cells.push(active_cell);
-        yield;        
 
-        const random_neighbor = this.get_random_neighbor(active_cell);
+        for (const wall in active_cell.walls) {
+            active_cell.walls[wall].style.display = "block";
+        }
+        yield;
 
+        // Alias
+        let active_cells = this.#active_cells;
+        let breaker = 0;
+
+        while (active_cells.length > 0) {
+            // Find available random neighbor, if any:
+            let random_neighbor = this.get_random_neighbor(active_cell);
+
+            breaker += 1;
+            if (breaker == 450) {
+                break;
+            }
+
+            if (random_neighbor != null) {
+                this.build_passage(active_cell, random_neighbor);
+                active_cells.push(random_neighbor);
+                active_cell = random_neighbor;
+                active_cell.visited = true;
+                this.#visited[active_cell.coordinates.x][active_cell.coordinates.y] = true;
+            }
+            else {
+                active_cell.cell.style.background = "none";
+                active_cell = active_cells.pop();
+                active_cell.cell.style.background = "red";
+            }
+            yield;
+        }
+
+        active_cell.cell.style.background = "none";
         yield;
     }
 
@@ -157,7 +214,7 @@ class Maze {
         let possible_neighbors = [];
 
         for (const [direction, direction_vector] of Object.entries(directions)) {
-            const neighbor_coordinates = active_cell.position.add(direction_vector);
+            const neighbor_coordinates = active_cell.coordinates.add(direction_vector);
             if (this.contains_coordinates(neighbor_coordinates)) {
                 if (!this.#visited[neighbor_coordinates.x][neighbor_coordinates.y]) {
                     const neighbor = this.get_cell(neighbor_coordinates);
@@ -176,27 +233,83 @@ class Maze {
     }
 
     build_passage(active_cell, neighbor) {
-        //
+        const active_cell_coordinates = active_cell.coordinates;
+        const neighbor_coordinates = neighbor.coordinates;
+        const active_to_neighbor_dir = neighbor_coordinates.subtract(active_cell_coordinates);
+        const neighbor_to_active_dir = active_cell_coordinates.subtract(neighbor_coordinates);
+        const direction = get_direction(active_to_neighbor_dir);
+        const opp_direction = get_direction(neighbor_to_active_dir);
+
+        switch (direction) {
+            case 'north':
+                active_cell.walls[direction].style.display = "none";
+                active_cell.cell.style.background = "none";
+                neighbor.cell.style.background = "red";
+                for (const wall in neighbor.walls) {
+                    if (wall == opp_direction) {
+                        continue;
+                    }
+                    neighbor.walls[wall].style.display = "block";
+                }
+                break;
+            case 'south':
+                active_cell.walls[direction].style.display = "none";
+                active_cell.cell.style.background = "none";
+                neighbor.cell.style.background = "red";
+                for (const wall in neighbor.walls) {
+                    if (wall == opp_direction) {
+                        continue;
+                    }
+                    neighbor.walls[wall].style.display = "block";
+                }
+                break;
+            case 'east':
+                active_cell.walls[direction].style.display = "none";
+                active_cell.cell.style.background = "none";
+                neighbor.cell.style.background = "red";
+                for (const wall in neighbor.walls) {
+                    if (wall == opp_direction) {
+                        continue;
+                    }
+                    neighbor.walls[wall].style.display = "block";
+                }
+                break;
+            case 'west':
+                active_cell.walls[direction].style.display = "none";
+                active_cell.cell.style.background = "none";
+                neighbor.cell.style.background = "red";
+                for (const wall in neighbor.walls) {
+                    if (wall == opp_direction) {
+                        continue;
+                    }
+                    neighbor.walls[wall].style.display = "block";
+                }
+                break;
+            default:
+                console.log("Switch error");
+        }
     }
 }
 
 function Coroutine(func) {
     this.run = true;
+    this.is_complete = false;
     coroutines.push(this);
     async function start_coroutine(func) {
         const f = func.bind(maze)();
         while (this.run) {
             if (f.next().done == true) {
+                this.is_complete = true;
                 break;
             }
-            await delay(ms_delay);
+            await delay(MS_DELAY);
         }
         const index = coroutines.indexOf(this);
         coroutines.splice(index, 1);
+        return this.is_complete;
     }
     const start = start_coroutine.bind(this);
-    const x = start(func);
-    return x;
+    return start(func);
 }
 
 function stop_all_coroutines() {
@@ -208,8 +321,10 @@ function stop_all_coroutines() {
 async function begin_game() {
     maze = new Maze(MAZE_DIM, COL_WIDTH);
     const coroutine_skel = new Coroutine(maze.generate_skeleton);
-    await coroutine_skel;
-    const coroutine_maze = new Coroutine(maze.generate_maze);
+    const is_complete = await coroutine_skel;
+    if (is_complete) {
+        const coroutine_maze = new Coroutine(maze.generate_maze);
+    }
 }
 
 function restart_game() {
